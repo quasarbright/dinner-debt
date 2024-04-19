@@ -82,6 +82,7 @@ function App() {
   /// left off about to do remove item
   return (
       <div style={{padding: 10}}>
+        <h1>Dinner Debt</h1>
         <div style={formLineStyle}>
           <div style={formLineStyle}>
             Items you're paying for:
