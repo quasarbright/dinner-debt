@@ -1,4 +1,4 @@
-import React, {CSSProperties, useState} from 'react';
+import React, {CSSProperties, useEffect, useState} from 'react';
 import logo from './logo.svg';
 import './App.css';
 
@@ -37,12 +37,15 @@ const textInputStyle: CSSProperties = {
   width: 40
 }
 
+function emptyItem(): Partial<Item> {
+  return {proportion: 1, id: crypto.randomUUID()}
+}
 
 function App() {
-  const [items, setItems] = useState<Partial<Item>[]>([])
+  const [items, setItems] = useState<Partial<Item>[]>([emptyItem()])
   const [subtotal, setSubtotal] = useState<number>()
   const [total, setTotal] = useState<number>()
-  const [tip, setTip] = useState<number>(0.2)
+  const [tip, setTip] = useState<number>(20)
   const [tipIsRate, setTipIsRate] = useState<boolean>(true)
   // TODO discounts
   // const [discount, setDiscount] = useState<number>()
@@ -55,9 +58,12 @@ function App() {
       mySubtotal += (cost ?? 0) * (proportion ?? 1)
     }
     const tax = (total ?? mySubtotal) - (subtotal ?? mySubtotal)
-    const tipCost = tipIsRate ? (total ?? subtotal ?? mySubtotal) * tip : tip
+    const tipCost = tipIsRate ? (total ?? subtotal ?? mySubtotal) * tip / 100 : tip
     const fees = tax + tipCost
     const myRatio = mySubtotal / (subtotal ?? mySubtotal)
+    if (!(subtotal || mySubtotal)) {
+      return 0
+    }
     const myFees = fees * myRatio
     // console.log({mySubtotal, subtotal, total, tax, tipCost, fees, myRatio})
     return mySubtotal + myFees
@@ -77,6 +83,10 @@ function App() {
       newItems.splice(index, 1)
       return newItems
     })
+  }
+
+  function addItem() {
+    setItems(items => [...items, {proportion: 1, id: crypto.randomUUID()}])
   }
 
   /// left off about to do remove item
@@ -105,7 +115,15 @@ function App() {
                 <button onClick={() => removeItem(index)}>Remove item</button>
               </div>
           ))}
-          <button onClick={() => setItems(items => [...items, {proportion: 1, id: crypto.randomUUID()}])}>Add item</button>
+          <div style={formLineStyle}>
+            <button onClick={() => addItem()}>Add item</button>
+          </div>
+          <div style={formLineStyle}>
+            Proportion is what fraction of the item you owe for. 
+            <br/>
+            Ex: 1/2 if you split it with one other person, 1 if it was all yours.
+            <br/>
+          </div>
         </div>
         <div style={formLineStyle}>
           <label htmlFor='sub'>Subtotal (for the whole bill): </label>
@@ -117,13 +135,14 @@ function App() {
         </div>
         <div style={formLineStyle}>
           <label htmlFor='tip'>Tip: </label>
-          <input name='tip' type='number' defaultValue='0.2' onChange={(ev) => setTip(Number.parseFloat(ev.target.value))} style={textInputStyle}/>
+          <input name='tip' type='number' defaultValue='20' onChange={(ev) => setTip(Number.parseFloat(ev.target.value))} style={textInputStyle}/>
           <input name="tipIsRate" type="radio" checked={tipIsRate} onClick={() => setTipIsRate(true)}/>
-          <label htmlFor="tipIsRate">rate</label>
+          <label htmlFor="tipIsRate">percent</label>
           <input name="tipisFlat" type="radio" checked={!tipIsRate} onClick={() => setTipIsRate(false)}/>
-          <label htmlFor="tipIsFlat">flat</label>
+          <label htmlFor="tipIsFlat">flat amount</label>
         </div>
         <p>You owe: {Intl.NumberFormat('en-US', {style: 'currency', currency: 'USD'}).format(debt)}</p>
+        <button onClick={() => window.location.reload()}>Clear</button>
       </div>
   );
 }
