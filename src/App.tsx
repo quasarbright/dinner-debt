@@ -1,5 +1,4 @@
-import React, {CSSProperties, useEffect, useState} from 'react';
-import logo from './logo.svg';
+import React, {CSSProperties, useState} from 'react';
 import './App.css';
 
 /*
@@ -89,13 +88,21 @@ function App() {
     setItems(items => [...items, {proportion: 1, id: crypto.randomUUID()}])
   }
 
-  /// left off about to do remove item
+  const debtStr = Intl.NumberFormat('en-US', {style: 'currency', currency: 'USD'}).format(debt)
+  const note = encodeURIComponent("dinner-debt")
+
   return (
       <div style={{padding: 10}}>
         <h1>Dinner Debt</h1>
         <div style={formLineStyle}>
+          <p>
+            Calculate how much you owe someone for dinner,
+            including your portion of the tax and tip based on what you ordered.
+          </p>
+        </div>
+        <div style={formLineStyle}>
           <div style={formLineStyle}>
-            Items you're paying for:
+            <p>Items you're paying for:</p>
           </div>
           {items.map((item, index) => (
               <div key={item.id} style={itemLineStyle}>
@@ -141,7 +148,11 @@ function App() {
           <input name="tipisFlat" type="radio" checked={!tipIsRate} onClick={() => setTipIsRate(false)}/>
           <label htmlFor="tipIsFlat">flat amount</label>
         </div>
-        <p>You owe: {Intl.NumberFormat('en-US', {style: 'currency', currency: 'USD'}).format(debt)}</p>
+        <p>You owe: {debtStr}</p>
+        <div>
+          <a href={`https://venmo.com/?txn=pay&amount=${debtStr}&note=${note}`}>Pay with Venmo</a>
+        </div>
+        <br/>
         <button onClick={() => window.location.reload()}>Clear</button>
       </div>
   );
