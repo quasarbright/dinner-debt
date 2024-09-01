@@ -154,6 +154,13 @@ function App() {
         </div>
         <br/>
         <button onClick={() => window.location.reload()}>Clear</button>
+        <br/>
+        <br/>
+        <footer>
+          Created by Mike Delmonaco
+          <br/>
+          <a href="https://github.com/quasarbright/dinner-debt">source code</a>
+        </footer>
       </div>
   );
 }
