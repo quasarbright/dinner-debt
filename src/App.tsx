@@ -51,6 +51,7 @@ function App() {
   // const [discount, setDiscount] = useState<number>()
   // const [discountIsProportional, setDiscountIsProportional] = useState<boolean>(true)
   // const [discountCustomProportion, setDiscountCustomProportion] = useState<number>()
+  const [isPayingMe, setIsPayingMe] = useState<boolean>(false)
   const [showQRCode, setShowQRCode] = useState<boolean>(false)
 
   const debt = (() => {
@@ -151,11 +152,19 @@ function App() {
           <label htmlFor="tipIsFlat">flat amount</label>
         </div>
         <p>You owe: {debtStr}</p>
-        <div>
-          <a href={`https://venmo.com/?txn=pay&amount=${debtStr}&note=${note}`}>Pay with Venmo</a>
+        <div style={formLineStyle}>
+          <p>Are you paying Mike Delmonaco?</p>
+          <input name="not-paying-me" type="radio" checked={!isPayingMe} onClick={() => setIsPayingMe(false)}/>
+          <label htmlFor="not-paying-me">no</label>
+          <input name="paying-me" type="radio" checked={isPayingMe} onClick={() => setIsPayingMe(true)}/>
+          <label htmlFor="paying-me">yes</label>
         </div>
         <div>
-          <a href={`https://venmo.com/?txn=pay&amount=${debtStr}&note=${note}&recipients=@Mike-Delmonaco`}>Pay Mike Delmonaco with Venmo</a>
+          {isPayingMe ? (
+            <a href={`https://venmo.com/?txn=pay&amount=${debtStr}&note=${note}&recipients=@Mike-Delmonaco`}>Pay Mike Delmonaco with Venmo</a>
+          ): (
+            <a href={`https://venmo.com/?txn=pay&amount=${debtStr}&note=${note}`}>Pay with Venmo</a>
+          )}
         </div>
         <br/>
         <button onClick={() => window.location.reload()}>Clear</button>
