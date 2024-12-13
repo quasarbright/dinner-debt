@@ -1,5 +1,6 @@
 import React, {CSSProperties, useState} from 'react';
 import './App.css';
+import QRCode from 'react-qr-code';
 
 /*
 items you're paying for:
@@ -50,6 +51,7 @@ function App() {
   // const [discount, setDiscount] = useState<number>()
   // const [discountIsProportional, setDiscountIsProportional] = useState<boolean>(true)
   // const [discountCustomProportion, setDiscountCustomProportion] = useState<number>()
+  const [showQRCode, setShowQRCode] = useState<boolean>(false)
 
   const debt = (() => {
     let mySubtotal = 0
@@ -157,6 +159,16 @@ function App() {
         </div>
         <br/>
         <button onClick={() => window.location.reload()}>Clear</button>
+        <br/>
+        <br/>
+        <button onClick={() => setShowQRCode(b => !b)}>Show/hide QR code</button>
+        <br/>
+        {showQRCode && (
+          <div>
+            <br/>
+            <QRCode value={window.location.href}/>
+          </div>
+        )}
         <br/>
         <br/>
         <footer>
