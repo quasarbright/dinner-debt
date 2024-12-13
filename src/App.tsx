@@ -152,6 +152,9 @@ function App() {
         <div>
           <a href={`https://venmo.com/?txn=pay&amount=${debtStr}&note=${note}`}>Pay with Venmo</a>
         </div>
+        <div>
+          <a href={`https://venmo.com/?txn=pay&amount=${debtStr}&note=${note}&recipients=@Mike-Delmonaco`}>Pay Mike Delmonaco with Venmo</a>
+        </div>
         <br/>
         <button onClick={() => window.location.reload()}>Clear</button>
         <br/>
