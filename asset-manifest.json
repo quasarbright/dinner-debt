@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/dinner-debt/static/css/main.f855e6bc.css",
-    "main.js": "/dinner-debt/static/js/main.bd2e795e.js",
+    "main.css": "/dinner-debt/static/css/main.bae8a93f.css",
+    "main.js": "/dinner-debt/static/js/main.99b94f9d.js",
     "static/js/453.ad07704e.chunk.js": "/dinner-debt/static/js/453.ad07704e.chunk.js",
     "index.html": "/dinner-debt/index.html",
-    "main.f855e6bc.css.map": "/dinner-debt/static/css/main.f855e6bc.css.map",
-    "main.bd2e795e.js.map": "/dinner-debt/static/js/main.bd2e795e.js.map",
+    "main.bae8a93f.css.map": "/dinner-debt/static/css/main.bae8a93f.css.map",
+    "main.99b94f9d.js.map": "/dinner-debt/static/js/main.99b94f9d.js.map",
     "453.ad07704e.chunk.js.map": "/dinner-debt/static/js/453.ad07704e.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.f855e6bc.css",
-    "static/js/main.bd2e795e.js"
+    "static/css/main.bae8a93f.css",
+    "static/js/main.99b94f9d.js"
   ]
 }
