@@ -100,6 +100,7 @@ function App() {
                 className="form-control form-control-sm"
                 name={`cost${index}`}
                 type="text"
+                inputMode="decimal"
                 onChange={(ev) => setItem(index, {cost: safeEval(ev.target.value, 1)})}
                 placeholder="0.00"
               />
@@ -112,6 +113,7 @@ function App() {
                 name={`proportion${index}`}
                 defaultValue='1'
                 type="text"
+                inputMode="numeric"
                 onChange={(ev) => setItem(index, {proportion: safeEval(ev.target.value, 1)})}
               />
             </div>
@@ -150,6 +152,7 @@ function App() {
             className="form-control form-control-sm"
             name='sub' 
             type='number' 
+            inputMode="decimal"
             onChange={(ev) => setSubtotal(Number.parseFloat(ev.target.value))} 
             placeholder="0.00"
           />
@@ -161,6 +164,7 @@ function App() {
             className="form-control form-control-sm"
             name='total' 
             type='number' 
+            inputMode="decimal"
             onChange={(ev) => setTotal(Number.parseFloat(ev.target.value))} 
             placeholder="0.00"
           />
@@ -173,9 +177,10 @@ function App() {
               className="form-control form-control-sm"
               name='tip' 
               type='number' 
+              inputMode="decimal"
               defaultValue='20' 
               onChange={(ev) => setTip(Number.parseFloat(ev.target.value))} 
-              style={{marginRight: '0.5rem', width: '80px'}}
+              style={{marginRight: '0.5rem'}}
             />
             
             <div className="radio-group">
@@ -251,13 +256,6 @@ function App() {
             Pay with Venmo
           </a>
         )}
-        
-        <button 
-          className="btn btn-outline action-button" 
-          onClick={() => window.location.reload()}
-        >
-          Clear Form
-        </button>
       </section>
       
       <section className="form-section">
