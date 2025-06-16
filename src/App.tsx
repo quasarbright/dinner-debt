@@ -1,4 +1,4 @@
-import React, {CSSProperties, useState} from 'react';
+import React, {useState} from 'react';
 import './App.css';
 import QRCode from 'react-qr-code';
 
@@ -19,22 +19,6 @@ interface Item {
   cost: number
   proportion: number
   id: string
-}
-
-const formFieldStyle: CSSProperties = {
-  marginRight: 10
-}
-
-const formLineStyle: CSSProperties = {
-  marginBottom: 20
-}
-
-const itemLineStyle: CSSProperties = {
-  marginBottom: 10
-}
-
-const textInputStyle: CSSProperties = {
-  width: 40
 }
 
 function emptyItem(): Partial<Item> {
@@ -96,97 +80,212 @@ function App() {
   const note = encodeURIComponent("dinner-debt")
 
   return (
-      <div style={{padding: 10}}>
-        <h1>Dinner Debt</h1>
-        <div style={formLineStyle}>
-          <p>
-            Calculate how much you owe someone for dinner,
-            including your portion of the tax and tip based on what you ordered.
-          </p>
-        </div>
-        <div style={formLineStyle}>
-          <div style={formLineStyle}>
-            <p>Items you're paying for:</p>
+    <div className="app-container">
+      <header className="app-header">
+        <h1 className="app-title">Dinner Debt</h1>
+        <p className="app-description">
+          Calculate how much you owe someone for dinner,
+          including your portion of the tax and tip based on what you ordered.
+        </p>
+      </header>
+      
+      <section className="form-section">
+        <h2 className="section-title">Items</h2>
+        
+        {items.map((item, index) => (
+          <div key={item.id} className="item-row">
+            <div className="form-group">
+              <label className="form-label" htmlFor={`cost${index}`}>Cost</label>
+              <input
+                className="form-control form-control-sm"
+                name={`cost${index}`}
+                type="text"
+                onChange={(ev) => setItem(index, {cost: safeEval(ev.target.value, 1)})}
+                placeholder="0.00"
+              />
+            </div>
+            
+            <div className="form-group">
+              <label className="form-label" htmlFor={`proportion${index}`}>Proportion</label>
+              <input
+                className="form-control form-control-sm"
+                name={`proportion${index}`}
+                defaultValue='1'
+                type="text"
+                onChange={(ev) => setItem(index, {proportion: safeEval(ev.target.value, 1)})}
+              />
+            </div>
+            
+            <div className="form-group">
+              <label className="form-label" style={{opacity: 0}}>Action</label>
+              <button 
+                className="btn btn-danger btn-sm" 
+                onClick={() => removeItem(index)}
+              >
+                Remove
+              </button>
+            </div>
           </div>
-          {items.map((item, index) => (
-              <div key={item.id} style={itemLineStyle}>
-                <label htmlFor={`cost${index}`}>Cost: </label>
-                <input
-                    name={`cost${index}`}
-                    onChange={(ev) => setItem(index, {cost: safeEval(ev.target.value, 1)})}
-                    style={{...formFieldStyle, ...textInputStyle}}
+        ))}
+        
+        <button 
+          className="btn btn-primary" 
+          onClick={() => addItem()}
+        >
+          Add Item
+        </button>
+        
+        <p className="help-text">
+          Proportion is what fraction of the item you owe for. 
+          <br/>
+          Example: 1/2 if you split it with one other person, 1 if it was all yours.
+        </p>
+      </section>
+      
+      <section className="form-section">
+        <h2 className="section-title">Bill Details</h2>
+        <div className="form-group">
+          <label className="form-label" htmlFor='sub'>Subtotal (Whole Bill)</label>
+          <input 
+            className="form-control form-control-sm"
+            name='sub' 
+            type='number' 
+            onChange={(ev) => setSubtotal(Number.parseFloat(ev.target.value))} 
+            placeholder="0.00"
+          />
+        </div>
+        
+        <div className="form-group">
+          <label className="form-label" htmlFor='total'>Total (Whole Bill)</label>
+          <input 
+            className="form-control form-control-sm"
+            name='total' 
+            type='number' 
+            onChange={(ev) => setTotal(Number.parseFloat(ev.target.value))} 
+            placeholder="0.00"
+          />
+        </div>
+        
+        <div className="form-group">
+          <label className="form-label" htmlFor='tip'>Tip</label>
+          <div style={{display: 'flex', alignItems: 'center'}}>
+            <input 
+              className="form-control form-control-sm"
+              name='tip' 
+              type='number' 
+              defaultValue='20' 
+              onChange={(ev) => setTip(Number.parseFloat(ev.target.value))} 
+              style={{marginRight: '0.5rem', width: '80px'}}
+            />
+            
+            <div className="radio-group">
+              <label className="radio-label">
+                <input 
+                  className="radio-input"
+                  name="tipIsRate" 
+                  type="radio" 
+                  checked={tipIsRate} 
+                  onClick={() => setTipIsRate(true)}
                 />
-                <label htmlFor={`proportion${index}`}>Proportion: </label>
-                <input
-                    name={`proportion${index}`}
-                    defaultValue='1'
-                    onChange={(ev) => setItem(index, {proportion: safeEval(ev.target.value, 1)})}
-                    style={{...formFieldStyle, ...textInputStyle}}
+                percent
+              </label>
+              
+              <label className="radio-label">
+                <input 
+                  className="radio-input"
+                  name="tipisFlat" 
+                  type="radio" 
+                  checked={!tipIsRate} 
+                  onClick={() => setTipIsRate(false)}
                 />
-                <button onClick={() => removeItem(index)}>Remove item</button>
-              </div>
-          ))}
-          <div style={formLineStyle}>
-            <button onClick={() => addItem()}>Add item</button>
-          </div>
-          <div style={formLineStyle}>
-            Proportion is what fraction of the item you owe for. 
-            <br/>
-            Ex: 1/2 if you split it with one other person, 1 if it was all yours.
-            <br/>
+                flat amount
+              </label>
+            </div>
           </div>
         </div>
-        <div style={formLineStyle}>
-          <label htmlFor='sub'>Subtotal (for the whole bill): </label>
-          <input name='sub' type='number' onChange={(ev) => setSubtotal(Number.parseFloat(ev.target.value))} style={textInputStyle}/>
-        </div>
-        <div style={formLineStyle}>
-          <label htmlFor='total'>Total (for the whole bill): </label>
-          <input name='total' type='number' onChange={(ev) => setTotal(Number.parseFloat(ev.target.value))} style={textInputStyle}/>
-        </div>
-        <div style={formLineStyle}>
-          <label htmlFor='tip'>Tip: </label>
-          <input name='tip' type='number' defaultValue='20' onChange={(ev) => setTip(Number.parseFloat(ev.target.value))} style={textInputStyle}/>
-          <input name="tipIsRate" type="radio" checked={tipIsRate} onClick={() => setTipIsRate(true)}/>
-          <label htmlFor="tipIsRate">percent</label>
-          <input name="tipisFlat" type="radio" checked={!tipIsRate} onClick={() => setTipIsRate(false)}/>
-          <label htmlFor="tipIsFlat">flat amount</label>
-        </div>
-        <p>You owe: {debtStr}</p>
-        <div style={formLineStyle}>
+      </section>
+      
+      <section className="result-section">
+        <h2 className="section-title">Result</h2>
+        <div className="result-amount">You owe: {debtStr}</div>
+        
+        <div className="form-group">
           <p>Are you paying Mike Delmonaco?</p>
-          <input name="not-paying-me" type="radio" checked={!isPayingMe} onClick={() => setIsPayingMe(false)}/>
-          <label htmlFor="not-paying-me">no</label>
-          <input name="paying-me" type="radio" checked={isPayingMe} onClick={() => setIsPayingMe(true)}/>
-          <label htmlFor="paying-me">yes</label>
+          <div className="radio-group">
+            <label className="radio-label">
+              <input 
+                className="radio-input"
+                name="not-paying-me" 
+                type="radio" 
+                checked={!isPayingMe} 
+                onClick={() => setIsPayingMe(false)}
+              />
+              No
+            </label>
+            
+            <label className="radio-label">
+              <input 
+                className="radio-input"
+                name="paying-me" 
+                type="radio" 
+                checked={isPayingMe} 
+                onClick={() => setIsPayingMe(true)}
+              />
+              Yes
+            </label>
+          </div>
         </div>
-        <div>
-          {isPayingMe ? (
-            <a href={`https://venmo.com/?txn=pay&amount=${amountStr}&note=${note}&recipients=@Mike-Delmonaco`}>Pay Mike Delmonaco with Venmo</a>
-          ): (
-            <a href={`https://venmo.com/?txn=pay&amount=${amountStr}&note=${note}`}>Pay with Venmo</a>
-          )}
+        
+        {isPayingMe ? (
+          <a 
+            className="action-button venmo-button" 
+            href={`https://venmo.com/?txn=pay&amount=${amountStr}&note=${note}&recipients=@Mike-Delmonaco`}
+          >
+            Pay Mike Delmonaco with Venmo
+          </a>
+        ): (
+          <a 
+            className="action-button venmo-button" 
+            href={`https://venmo.com/?txn=pay&amount=${amountStr}&note=${note}`}
+          >
+            Pay with Venmo
+          </a>
+        )}
+        
+        <button 
+          className="btn btn-outline action-button" 
+          onClick={() => window.location.reload()}
+        >
+          Clear Form
+        </button>
+      </section>
+      
+      <section className="form-section">
+        <div 
+          className="qr-toggle"
+          onClick={() => setShowQRCode(b => !b)}
+        >
+          {showQRCode ? '▼ Hide QR Code' : '▶ Show QR Code'}
         </div>
-        <br/>
-        <button onClick={() => window.location.reload()}>Clear</button>
-        <br/>
-        <br/>
-        <button onClick={() => setShowQRCode(b => !b)}>Show/hide QR code</button>
-        <br/>
+        
         {showQRCode && (
-          <div>
-            <br/>
-            <QRCode value={window.location.href}/>
+          <div className="qr-container">
+            <QRCode 
+              value={window.location.href}
+              bgColor="var(--background-secondary)"
+              fgColor="#dcddde"
+              level="M"
+            />
           </div>
         )}
+      </section>
+      
+      <footer className="app-footer">
+        Created by Mike Delmonaco
         <br/>
-        <br/>
-        <footer>
-          Created by Mike Delmonaco
-          <br/>
-          <a href="https://github.com/quasarbright/dinner-debt">source code</a>
-        </footer>
-      </div>
+        <a href="https://github.com/quasarbright/dinner-debt">Source Code</a>
+      </footer>
+    </div>
   );
 }
 

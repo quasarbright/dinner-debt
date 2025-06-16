@@ -36,3 +36,260 @@
     transform: rotate(360deg);
   }
 }
+
+.app-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 1rem;
+  background-color: var(--background-primary);
+  min-height: 100vh;
+}
+
+.app-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.app-title {
+  color: var(--header-primary);
+  margin-bottom: 0.5rem;
+  font-size: 1.75rem;
+}
+
+.app-description {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+.form-section {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background-color: var(--background-secondary);
+  border-radius: var(--border-radius);
+}
+
+.section-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.item-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  border-radius: var(--border-radius);
+  background-color: var(--background-primary);
+  border: none;
+}
+
+.form-group {
+  margin-right: 1rem;
+  margin-bottom: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.form-control {
+  display: block;
+  width: 100%;
+  padding: 0.5rem;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--text-normal);
+  background-color: rgba(0, 0, 0, 0.1);
+  border: none;
+  border-radius: var(--border-radius);
+  transition: background-color 0.15s ease-in-out;
+  height: 38px;
+}
+
+.form-control:focus {
+  outline: 0;
+  background-color: rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0 0 2px rgba(88, 101, 242, 0.3);
+}
+
+.form-control-sm {
+  width: 80px;
+}
+
+.btn {
+  display: inline-block;
+  font-weight: 500;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+  user-select: none;
+  border: none;
+  padding: 0.5rem 1rem;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  border-radius: var(--border-radius);
+  transition: background-color 0.15s ease-in-out;
+  height: 38px;
+}
+
+.btn-primary {
+  color: white;
+  background-color: var(--brand);
+}
+
+.btn-primary:hover {
+  background-color: var(--brand-hover);
+}
+
+.btn-outline {
+  color: var(--interactive-normal);
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.btn-outline:hover {
+  color: var(--interactive-active);
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.btn-danger {
+  color: white;
+  background-color: var(--red);
+}
+
+.btn-danger:hover {
+  opacity: 0.9;
+}
+
+.btn-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  border-radius: 3px;
+}
+
+.radio-group {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.radio-label {
+  margin-right: 1rem;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  color: var(--interactive-normal);
+  white-space: nowrap;
+}
+
+.radio-input {
+  margin-right: 0.25rem;
+  accent-color: var(--brand);
+}
+
+.help-text {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-top: 0.5rem;
+}
+
+.result-section {
+  margin: 1.5rem 0;
+  padding: 1.25rem;
+  background-color: var(--background-secondary);
+  border-radius: var(--border-radius);
+  text-align: center;
+}
+
+.result-amount {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--header-primary);
+  margin: 0.75rem 0;
+}
+
+.action-button {
+  display: block;
+  width: 100%;
+  padding: 0.75rem;
+  margin: 1rem 0;
+  text-align: center;
+  border-radius: var(--border-radius);
+}
+
+.venmo-button {
+  background-color: #008CFF;
+  color: white;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.venmo-button:hover {
+  background-color: #0074D4;
+  text-decoration: none;
+  color: white;
+}
+
+.qr-toggle {
+  color: var(--text-normal);
+  cursor: pointer;
+  font-size: 0.95rem;
+  padding: 0.5rem 0;
+  user-select: none;
+}
+
+.qr-toggle:hover {
+  color: var(--interactive-hover);
+}
+
+.qr-container {
+  display: flex;
+  justify-content: center;
+  margin: 1rem 0;
+  padding: 1rem;
+  background-color: var(--background-secondary);
+  border-radius: var(--border-radius);
+}
+
+/* Remove the white background from the QR code SVG */
+.qr-container svg {
+  padding: 0;
+  background-color: transparent;
+  border-radius: var(--border-radius);
+}
+
+.app-footer {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* Responsive adjustments */
+@media (max-width: 576px) {
+  .item-row {
+    padding: 0.5rem;
+  }
+  
+  .form-group {
+    margin-right: 0.5rem;
+  }
+}
