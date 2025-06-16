@@ -92,6 +92,7 @@ function App() {
   }
 
   const debtStr = Intl.NumberFormat('en-US', {style: 'currency', currency: 'USD'}).format(debt)
+  const amountStr = debtStr.substring(1); // remove the dollar sign for Venmo
   const note = encodeURIComponent("dinner-debt")
 
   return (
@@ -161,9 +162,9 @@ function App() {
         </div>
         <div>
           {isPayingMe ? (
-            <a href={`https://venmo.com/?txn=pay&amount=${debtStr}&note=${note}&recipients=@Mike-Delmonaco`}>Pay Mike Delmonaco with Venmo</a>
+            <a href={`https://venmo.com/?txn=pay&amount=${amountStr}&note=${note}&recipients=@Mike-Delmonaco`}>Pay Mike Delmonaco with Venmo</a>
           ): (
-            <a href={`https://venmo.com/?txn=pay&amount=${debtStr}&note=${note}`}>Pay with Venmo</a>
+            <a href={`https://venmo.com/?txn=pay&amount=${amountStr}&note=${note}`}>Pay with Venmo</a>
           )}
         </div>
         <br/>
