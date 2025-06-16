@@ -113,7 +113,6 @@ function App() {
                 name={`proportion${index}`}
                 defaultValue='1'
                 type="text"
-                inputMode="numeric"
                 onChange={(ev) => setItem(index, {proportion: safeEval(ev.target.value, 1)})}
               />
             </div>
