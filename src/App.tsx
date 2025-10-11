@@ -43,6 +43,8 @@ function App() {
   const [showQRCode, setShowQRCode] = useState<boolean>(false)
   const [isProcessingReceipt, setIsProcessingReceipt] = useState<boolean>(false)
   const [receiptError, setReceiptError] = useState<string>()
+  const [showApiKeyModal, setShowApiKeyModal] = useState<boolean>(false)
+  const [apiKeyInput, setApiKeyInput] = useState<string>('')
   
   // Feature flag: Check for ?receipt-upload query parameter
   const receiptUploadEnabled = new URLSearchParams(window.location.search).has('receipt-upload-enabled')
@@ -90,13 +92,21 @@ function App() {
     const file = event.target.files?.[0]
     if (!file) return
 
+    // Check for API key
+    const apiKey = localStorage.getItem('openrouter_api_key')
+    if (!apiKey) {
+      setShowApiKeyModal(true)
+      event.target.value = '' // Reset file input
+      return
+    }
+
     setIsProcessingReceipt(true)
     setReceiptError(undefined)
 
     try {
       console.log('Receipt selected:', file.name, file.type)
       
-      // TODO: Implement receipt processing
+      // TODO: Implement receipt processing with API key
       throw new Error('Receipt processing not supported yet')
     } catch (error) {
       console.error('Error processing receipt:', error)
@@ -106,6 +116,15 @@ function App() {
       // Reset the input so the same file can be selected again
       event.target.value = ''
     }
+  }
+
+  function handleSaveApiKey() {
+    if (!apiKeyInput.trim()) {
+      return
+    }
+    localStorage.setItem('openrouter_api_key', apiKeyInput.trim())
+    setShowApiKeyModal(false)
+    setApiKeyInput('')
   }
 
   const debtStr = Intl.NumberFormat('en-US', {style: 'currency', currency: 'USD'}).format(debt)
@@ -401,6 +420,47 @@ function App() {
         <br/>
         <a href="https://github.com/quasarbright/dinner-debt">Source Code</a>
       </footer>
+      
+      {showApiKeyModal && (
+        <div className="modal-overlay" onClick={() => setShowApiKeyModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h2 className="modal-title">OpenRouter API Key Required</h2>
+            <p className="modal-description">
+              To use receipt upload, you need an OpenRouter API key.
+            </p>
+            <div className="modal-warning">
+              ⚠️ <strong>Security Warning:</strong> Your API key will be stored in your browser's localStorage. 
+              This is NOT secure storage. Only paste your key if you understand the risk.
+            </div>
+            <input
+              type="password"
+              className="form-control api-key-input"
+              placeholder="sk-or-v1-..."
+              value={apiKeyInput}
+              onChange={(e) => setApiKeyInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSaveApiKey()}
+            />
+            <div className="modal-actions">
+              <button 
+                className="btn btn-outline" 
+                onClick={() => {
+                  setShowApiKeyModal(false)
+                  setApiKeyInput('')
+                }}
+              >
+                Cancel
+              </button>
+              <button 
+                className="btn btn-primary" 
+                onClick={handleSaveApiKey}
+                disabled={!apiKeyInput.trim()}
+              >
+                Save Key
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
