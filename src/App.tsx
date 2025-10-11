@@ -17,13 +17,15 @@ You owe: $5.69
 
 interface Item {
   cost: number
-  portionsPaying: number
+  // how many people you're paying for
+  portionsPayingFor: number
+  // how many people this was split with
   totalPortions: number
   id: string
 }
 
 function emptyItem(): Partial<Item> {
-  return {portionsPaying: 1, totalPortions: 1, id: crypto.randomUUID()}
+  return {portionsPayingFor: 1, totalPortions: 1, id: crypto.randomUUID()}
 }
 
 function App() {
@@ -41,8 +43,8 @@ function App() {
 
   const debt = (() => {
     let mySubtotal = 0
-    for (const {cost, portionsPaying, totalPortions} of items) {
-      const proportion = (portionsPaying ?? 1) / (totalPortions ?? 1)
+    for (const {cost, portionsPayingFor, totalPortions} of items) {
+      const proportion = (portionsPayingFor ?? 1) / (totalPortions ?? 1)
       mySubtotal += (cost ?? 0) * proportion
     }
     const tax = (total ?? mySubtotal) - (subtotal ?? mySubtotal)
@@ -74,7 +76,7 @@ function App() {
   }
 
   function addItem() {
-    setItems(items => [...items, {portionsPaying: 1, totalPortions: 1, id: crypto.randomUUID()}])
+    setItems(items => [...items, {portionsPayingFor: 1, totalPortions: 1, id: crypto.randomUUID()}])
   }
 
   const debtStr = Intl.NumberFormat('en-US', {style: 'currency', currency: 'USD'}).format(debt)
@@ -120,74 +122,37 @@ function App() {
             
             <div className="form-group portion-group">
               <div className="portion-controls">
-                <div className="counter-wrapper">
+                <div className="select-wrapper">
                   <label className="form-label portion-label">Split?</label>
-                  <div className="counter-control">
-                    {(item.totalPortions ?? 1) > 1 && (
-                      <button 
-                        className="counter-btn"
-                        onClick={() => {
-                          const newTotal = Math.max(1, (item.totalPortions ?? 1) - 1)
-                          const newPaying = Math.min(item.portionsPaying ?? 1, newTotal)
-                          setItem(index, {totalPortions: newTotal, portionsPaying: newPaying})
-                        }}
-                      >
-                        -
-                      </button>
-                    )}
-                    <span className={`counter-display ${(item.totalPortions ?? 1) === 1 ? 'is-text' : 'is-number'}`}>
-                      {(item.totalPortions ?? 1) === 1 ? 'Just me' : (
-                        <>
-                          {item.totalPortions ?? 1}
-                          <svg className="people-icon" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
-                          </svg>
-                        </>
-                      )}
-                    </span>
-                    <button 
-                      className="counter-btn"
-                      onClick={() => setItem(index, {totalPortions: (item.totalPortions ?? 1) + 1})}
-                    >
-                      +
-                    </button>
-                  </div>
+                  <select 
+                    className="form-control portion-select"
+                    value={item.totalPortions ?? 1}
+                    onChange={(ev) => {
+                      const newTotal = Number(ev.target.value)
+                      const newPaying = Math.min(item.portionsPayingFor ?? 1, newTotal)
+                      setItem(index, {totalPortions: newTotal, portionsPayingFor: newPaying})
+                    }}
+                  >
+                    <option value={1}>Just me</option>
+                    {Array.from({length: 19}, (_, i) => i + 2).map(n => (
+                      <option key={n} value={n}>{n} people</option>
+                    ))}
+                  </select>
                 </div>
                 
                 {(item.totalPortions ?? 1) > 1 && (
-                  <>
-                    <div className="portion-divider"></div>
-                    <div className="counter-wrapper">
-                      <label className="form-label portion-label">Paying for</label>
-                      <div className="counter-control counter-paying">
-                      {(item.portionsPaying ?? 1) > 1 && (
-                        <button 
-                          className="counter-btn"
-                          onClick={() => setItem(index, {portionsPaying: Math.max(1, (item.portionsPaying ?? 1) - 1)})}
-                        >
-                          -
-                        </button>
-                      )}
-                      <span className={`counter-display ${(item.portionsPaying ?? 1) === 1 ? 'is-text' : 'is-number'}`}>
-                        {(item.portionsPaying ?? 1) === 1 ? 'Just me' : (
-                          <>
-                            {item.portionsPaying ?? 1}
-                            <svg className="people-icon" viewBox="0 0 24 24" fill="currentColor">
-                              <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
-                            </svg>
-                          </>
-                        )}
-                      </span>
-                      <button 
-                        className="counter-btn"
-                        onClick={() => setItem(index, {portionsPaying: Math.min((item.totalPortions ?? 1), (item.portionsPaying ?? 1) + 1)})}
-                        disabled={(item.portionsPaying ?? 1) >= (item.totalPortions ?? 1)}
+                  <div className="select-wrapper">
+                    <label className="form-label portion-label">Paying for</label>
+                      <select 
+                        className="form-control portion-select"
+                        value={item.portionsPayingFor ?? 1}
+                        onChange={(ev) => setItem(index, {portionsPayingFor: Number(ev.target.value)})}
                       >
-                        +
-                      </button>
+                        {Array.from({length: item.totalPortions ?? 1}, (_, i) => i + 1).map(n => (
+                          <option key={n} value={n}>{n === 1 ? 'Just me' : `${n} people`}</option>
+                        ))}
+                      </select>
                     </div>
-                  </div>
-                  </>
                 )}
               </div>
             </div>
