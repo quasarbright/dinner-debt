@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
 import './App.css';
 import QRCode from 'react-qr-code';
+import Tesseract from 'tesseract.js';
 
 /*
 items you're paying for:
@@ -16,6 +17,7 @@ You owe: $5.69
 */
 
 interface Item {
+  name?: string
   cost: number
   // how many people you're paying for
   portionsPaying: number
@@ -40,6 +42,8 @@ function App() {
   // const [discountCustomProportion, setDiscountCustomProportion] = useState<number>()
   const [isPayingMe, setIsPayingMe] = useState<boolean>(false)
   const [showQRCode, setShowQRCode] = useState<boolean>(false)
+  const [isProcessingReceipt, setIsProcessingReceipt] = useState<boolean>(false)
+  const [receiptError, setReceiptError] = useState<string>()
 
   const debt = (() => {
     let mySubtotal = 0
@@ -80,6 +84,29 @@ function App() {
     setItems(items => [...items, {portionsPaying: 1, totalPortions: 1, id: crypto.randomUUID()}])
   }
 
+  async function handleReceiptUpload(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    setIsProcessingReceipt(true)
+    setReceiptError(undefined)
+
+    try {
+      // TODO: Implement OCR and LLM parsing in next steps
+      console.log('Processing receipt:', file.name)
+      
+      // Placeholder - will be implemented in steps 4 & 5
+      throw new Error('Receipt processing not yet implemented')
+    } catch (error) {
+      console.error('Error processing receipt:', error)
+      setReceiptError(error instanceof Error ? error.message : 'Failed to process receipt')
+    } finally {
+      setIsProcessingReceipt(false)
+      // Reset the input so the same file can be selected again
+      event.target.value = ''
+    }
+  }
+
   const debtStr = Intl.NumberFormat('en-US', {style: 'currency', currency: 'USD'}).format(debt)
   const amountStr = debtStr.substring(1); // remove the dollar sign for Venmo
   const note = encodeURIComponent("dinner-debt")
@@ -97,109 +124,125 @@ function App() {
       <section className="form-section">
         <h2 className="section-title">Items</h2>
         
-        <table className="items-table">
-          <thead>
-            <tr>
-              <th></th>
-              <th>Cost</th>
-              <th>Split?</th>
-              <th>Paying for</th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((item, index) => {
-              // Calculate the max split value across all items
-              const maxSplit = Math.max(8, ...items.map(i => Math.abs(i.totalPortions ?? 1)))
-              
-              return (
-              <tr key={item.id}>
-                <td>
+        {receiptError && (
+          <div className="error-message">{receiptError}</div>
+        )}
+        
+        <div className="items-container">
+          {items.map((item, index) => {
+            // Calculate the max split value across all items
+            const maxSplit = Math.max(8, ...items.map(i => Math.abs(i.totalPortions ?? 1)))
+            
+            return (
+              <div key={item.id} className="item-card">
+                {(true || item.name) && (
+                  <div className="item-name">{item.name ?? 'milkshake'}</div>
+                )}
+                
+                <div className="item-controls">
                   <button 
                     className="btn btn-danger btn-sm btn-remove" 
                     onClick={() => removeItem(index)}
                   >
                     ×
                   </button>
-                </td>
-                
-                <td>
-                  <div className="currency-input-wrapper">
-                    <span className="currency-symbol">$</span>
-                    <input
-                      className="form-control form-control-sm currency-input"
-                      name={`cost${index}`}
-                      type="text"
-                      inputMode="decimal"
-                      onChange={(ev) => setItem(index, {cost: safeEval(ev.target.value, 1)})}
-                      placeholder="0.00"
-                    />
+                  
+                  <div className="control-group">
+                    <label className="control-label">Cost</label>
+                    <div className="currency-input-wrapper">
+                      <span className="currency-symbol">$</span>
+                      <input
+                        className="form-control form-control-sm currency-input"
+                        name={`cost${index}`}
+                        type="text"
+                        inputMode="decimal"
+                        onChange={(ev) => setItem(index, {cost: safeEval(ev.target.value, 1)})}
+                        placeholder="0.00"
+                      />
+                    </div>
                   </div>
-                </td>
-                
-                <td>
-                  {(item.totalPortions ?? 1) < 0 || item.totalPortions === 0 ? (
-                    <input
-                      className="form-control form-control-sm"
-                      type="number"
-                      inputMode="numeric"
-                      value={item.totalPortions === 0 ? '' : Math.abs(item.totalPortions ?? 1)}
-                      onChange={(ev) => {
-                        const value = ev.target.value
-                        const newTotal = value === '' ? 0 : Number(value)
-                        const actualTotal = Math.max(1, newTotal)
-                        const newPaying = Math.min(item.portionsPaying ?? 1, actualTotal)
-                        setItem(index, {totalPortions: newTotal === 0 ? 0 : -Math.abs(newTotal), portionsPaying: newPaying})
-                      }}
-                    />
-                  ) : (
+                  
+                  <div className="control-group">
+                    <label className="control-label">Split?</label>
+                    {(item.totalPortions ?? 1) < 0 || item.totalPortions === 0 ? (
+                      <input
+                        className="form-control form-control-sm"
+                        type="number"
+                        inputMode="numeric"
+                        value={item.totalPortions === 0 ? '' : Math.abs(item.totalPortions ?? 1)}
+                        onChange={(ev) => {
+                          const value = ev.target.value
+                          const newTotal = value === '' ? 0 : Number(value)
+                          const actualTotal = Math.max(1, newTotal)
+                          const newPaying = Math.min(item.portionsPaying ?? 1, actualTotal)
+                          setItem(index, {totalPortions: newTotal === 0 ? 0 : -Math.abs(newTotal), portionsPaying: newPaying})
+                        }}
+                      />
+                    ) : (
+                      <select 
+                        className="form-control portion-select"
+                        value={item.totalPortions ?? 1}
+                        onChange={(ev) => {
+                          const value = ev.target.value
+                          if (value === 'more') {
+                            const newTotal = maxSplit + 1
+                            const newPaying = Math.min(item.portionsPaying ?? 1, newTotal)
+                            setItem(index, {totalPortions: -newTotal, portionsPaying: newPaying})
+                          } else {
+                            const newTotal = Number(value)
+                            const newPaying = Math.min(item.portionsPaying ?? 1, newTotal)
+                            setItem(index, {totalPortions: newTotal, portionsPaying: newPaying})
+                          }
+                        }}
+                      >
+                        <option value={1}>Just me</option>
+                        {Array.from({length: maxSplit - 1}, (_, i) => i + 2).map(n => (
+                          <option key={n} value={n}>{n} people</option>
+                        ))}
+                        <option value="more">...more</option>
+                      </select>
+                    )}
+                  </div>
+                  
+                  <div className="control-group">
+                    <label className="control-label">Paying for</label>
                     <select 
                       className="form-control portion-select"
-                      value={item.totalPortions ?? 1}
-                      onChange={(ev) => {
-                        const value = ev.target.value
-                        if (value === 'more') {
-                          const newTotal = maxSplit + 1
-                          const newPaying = Math.min(item.portionsPaying ?? 1, newTotal)
-                          setItem(index, {totalPortions: -newTotal, portionsPaying: newPaying})
-                        } else {
-                          const newTotal = Number(value)
-                          const newPaying = Math.min(item.portionsPaying ?? 1, newTotal)
-                          setItem(index, {totalPortions: newTotal, portionsPaying: newPaying})
-                        }
-                      }}
+                      value={item.portionsPaying ?? 1}
+                      onChange={(ev) => setItem(index, {portionsPaying: Number(ev.target.value)})}
                     >
-                      <option value={1}>Just me</option>
-                      {Array.from({length: maxSplit - 1}, (_, i) => i + 2).map(n => (
-                        <option key={n} value={n}>{n} people</option>
+                      {Array.from({length: Math.max(1, Math.abs(item.totalPortions ?? 1))}, (_, i) => i + 1).map(n => (
+                        <option key={n} value={n}>{n === 1 ? 'Just me' : `${n} people`}</option>
                       ))}
-                      <option value="more">...more</option>
                     </select>
-                  )}
-                </td>
-                
-                <td>
-                  <select 
-                    className="form-control portion-select"
-                    value={item.portionsPaying ?? 1}
-                    onChange={(ev) => setItem(index, {portionsPaying: Number(ev.target.value)})}
-                  >
-                    {Array.from({length: Math.max(1, Math.abs(item.totalPortions ?? 1))}, (_, i) => i + 1).map(n => (
-                      <option key={n} value={n}>{n === 1 ? 'Just me' : `${n} people`}</option>
-                    ))}
-                  </select>
-                </td>
-              </tr>
-              )
-            })}
-          </tbody>
-        </table>
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
         
-        <button 
-          className="btn btn-primary" 
-          onClick={() => addItem()}
-        >
-          Add Item
-        </button>
+        <div className="action-buttons">
+          <input
+            type="file"
+            id="receipt-upload"
+            accept="image/*"
+            capture="environment"
+            onChange={handleReceiptUpload}
+            style={{ display: 'none' }}
+            disabled={isProcessingReceipt}
+          />
+          <label htmlFor="receipt-upload" className={`btn btn-outline upload-button ${isProcessingReceipt ? 'disabled' : ''}`}>
+            {isProcessingReceipt ? 'Processing...' : '📸 Upload Receipt'}
+          </label>
+          
+          <button 
+            className="btn btn-primary" 
+            onClick={() => addItem()}
+          >
+            Add Item
+          </button>
+        </div>
         
       </section>
       

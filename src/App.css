@@ -79,34 +79,78 @@
   letter-spacing: 0.02em;
 }
 
-.items-table {
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.upload-button {
+  cursor: pointer;
+  display: inline-block;
+}
+
+.upload-button.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.error-message {
+  color: var(--red);
+  font-size: 0.875rem;
+  padding: 0.5rem;
+  background-color: rgba(240, 71, 71, 0.1);
+  border-radius: var(--border-radius);
   width: 100%;
-  border-collapse: collapse;
+  margin-bottom: 0.5rem;
+}
+
+.items-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
   margin-bottom: 1rem;
 }
 
-.items-table th {
-  text-align: left;
-  font-size: 0.7rem;
-  font-weight: 700;
+.item-card {
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: var(--border-radius);
+  padding: 0.75rem;
+}
+
+.item-name {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--header-primary);
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.item-controls {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.control-group {
+  flex: 1;
+  min-width: 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.control-group:has(.currency-input-wrapper) {
+  flex: 0 0 auto;
+}
+
+.control-label {
+  font-size: 0.65rem;
+  font-weight: 600;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.02em;
-  padding: 0.5rem 0.5rem 0.75rem 0.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.items-table th:first-child {
-  width: 50px;
-}
-
-.items-table td {
-  padding: 0.75rem 0.5rem;
-  vertical-align: middle;
-}
-
-.items-table tbody tr {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .form-group {
@@ -366,15 +410,15 @@
   }
 }
 
-/* Number inputs in portion columns */
-.items-table td input[type="number"] {
+/* Number inputs in portion controls */
+.item-controls input[type="number"] {
   width: 100px;
   text-align: center;
 }
 
 .btn-remove {
   width: 36px;
-  height: 36px;
+  height: 38px;
   min-width: 36px;
   padding: 0;
   font-size: 1.5rem;
@@ -382,6 +426,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 /* Responsive adjustments */
@@ -390,13 +435,12 @@
     margin-right: 0.5rem;
   }
   
-  .items-table th {
-    font-size: 0.65rem;
-    padding: 0.5rem 0.25rem 0.75rem 0.25rem;
+  .item-card {
+    padding: 0.65rem;
   }
   
-  .items-table td {
-    padding: 0.5rem 0.25rem;
+  .item-controls {
+    gap: 0.4rem;
   }
   
   .portion-select {
