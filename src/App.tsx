@@ -42,7 +42,10 @@ function App() {
   const [isPayingMe, setIsPayingMe] = useState<boolean>(false)
   const [showQRCode, setShowQRCode] = useState<boolean>(false)
   const [isProcessingReceipt, setIsProcessingReceipt] = useState<boolean>(false)
-  const [receiptError, setReceiptError] = useState<string | undefined>("uh oh")
+  const [receiptError, setReceiptError] = useState<string>()
+  
+  // Feature flag: Check for ?receipt-upload query parameter
+  const receiptUploadEnabled = new URLSearchParams(window.location.search).has('receipt-upload-enabled')
 
   const debt = (() => {
     let mySubtotal = 0
@@ -218,18 +221,22 @@ function App() {
         
         <div className="action-buttons-container">
           <div className="action-buttons">
-          <input
-            type="file"
-            id="receipt-upload"
-            accept="image/*"
-            capture="environment"
-            onChange={handleReceiptUpload}
-            style={{ display: 'none' }}
-            disabled={isProcessingReceipt}
-          />
-            <label htmlFor="receipt-upload" className={`btn btn-outline upload-button ${isProcessingReceipt ? 'disabled' : ''}`}>
-              {isProcessingReceipt ? 'Processing...' : '📸 Upload Receipt'}
-            </label>
+            {receiptUploadEnabled && (
+              <>
+                <input
+                  type="file"
+                  id="receipt-upload"
+                  accept="image/*"
+                  capture="environment"
+                  onChange={handleReceiptUpload}
+                  style={{ display: 'none' }}
+                  disabled={isProcessingReceipt}
+                />
+                <label htmlFor="receipt-upload" className={`btn btn-outline upload-button ${isProcessingReceipt ? 'disabled' : ''}`}>
+                  {isProcessingReceipt ? 'Processing...' : '📸 Upload Receipt (beta)'}
+                </label>
+              </>
+            )}
             
             <button 
               className="btn btn-primary" 
