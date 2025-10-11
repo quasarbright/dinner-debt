@@ -129,7 +129,7 @@
 }
 
 .form-control-sm {
-  width: 80px;
+  width: 60px;
 }
 
 .btn {
@@ -283,6 +283,117 @@
   color: var(--text-muted);
 }
 
+/* Counter controls for portions */
+.portion-group {
+  flex: 1;
+  min-width: 150px;
+}
+
+.portion-controls {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.25rem;
+}
+
+.counter-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.portion-label {
+  text-align: left;
+  margin-bottom: 0.25rem;
+  white-space: nowrap;
+  align-self: flex-start;
+}
+
+.counter-control {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.counter-paying {
+  margin-left: 0;
+}
+
+.portion-divider {
+  width: 2px;
+  height: 36px;
+  background-color: rgba(255, 255, 255, 0.5);
+  margin: 0 0.35rem;
+  align-self: flex-end;
+  flex-shrink: 0;
+}
+
+.counter-btn {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  min-height: 36px;
+  border: none;
+  border-radius: var(--border-radius);
+  background-color: var(--brand);
+  color: white;
+  font-size: 1.125rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.15s ease-in-out, opacity 0.15s ease-in-out;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.counter-btn:hover:not(:disabled) {
+  background-color: var(--brand-hover);
+}
+
+.counter-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.counter-display {
+  text-align: center;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-normal);
+}
+
+.counter-display.is-text {
+  min-width: 60px;
+}
+
+.counter-display.is-number {
+  min-width: 20px;
+  margin: 0 0.15rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.people-icon {
+  width: 1rem;
+  height: 1rem;
+  color: var(--text-normal);
+  opacity: 0.8;
+}
+
+.btn-remove {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  padding: 0;
+  font-size: 1.5rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 /* Responsive adjustments */
 @media (max-width: 576px) {
   .item-row {
@@ -291,5 +402,17 @@
   
   .form-group {
     margin-right: 0.5rem;
+  }
+  
+  .portion-group {
+    margin-right: 0;
+  }
+  
+  .portion-label {
+    font-size: 0.65rem;
+  }
+  
+  .counter-wrapper {
+    flex-shrink: 1;
   }
 }

@@ -17,12 +17,13 @@ You owe: $5.69
 
 interface Item {
   cost: number
-  proportion: number
+  portionsPaying: number
+  totalPortions: number
   id: string
 }
 
 function emptyItem(): Partial<Item> {
-  return {proportion: 1, id: crypto.randomUUID()}
+  return {portionsPaying: 1, totalPortions: 1, id: crypto.randomUUID()}
 }
 
 function App() {
@@ -40,8 +41,9 @@ function App() {
 
   const debt = (() => {
     let mySubtotal = 0
-    for (const {cost, proportion} of items) {
-      mySubtotal += (cost ?? 0) * (proportion ?? 1)
+    for (const {cost, portionsPaying, totalPortions} of items) {
+      const proportion = (portionsPaying ?? 1) / (totalPortions ?? 1)
+      mySubtotal += (cost ?? 0) * proportion
     }
     const tax = (total ?? mySubtotal) - (subtotal ?? mySubtotal)
     const tipCost = tipIsRate ? (total ?? subtotal ?? mySubtotal) * tip / 100 : tip
@@ -72,7 +74,7 @@ function App() {
   }
 
   function addItem() {
-    setItems(items => [...items, {proportion: 1, id: crypto.randomUUID()}])
+    setItems(items => [...items, {portionsPaying: 1, totalPortions: 1, id: crypto.randomUUID()}])
   }
 
   const debtStr = Intl.NumberFormat('en-US', {style: 'currency', currency: 'USD'}).format(debt)
@@ -95,6 +97,16 @@ function App() {
         {items.map((item, index) => (
           <div key={item.id} className="item-row">
             <div className="form-group">
+              <label className="form-label" style={{opacity: 0}}>×</label>
+              <button 
+                className="btn btn-danger btn-sm btn-remove" 
+                onClick={() => removeItem(index)}
+              >
+                ×
+              </button>
+            </div>
+            
+            <div className="form-group">
               <label className="form-label" htmlFor={`cost${index}`}>Cost</label>
               <input
                 className="form-control form-control-sm"
@@ -106,25 +118,78 @@ function App() {
               />
             </div>
             
-            <div className="form-group">
-              <label className="form-label" htmlFor={`proportion${index}`}>Proportion</label>
-              <input
-                className="form-control form-control-sm"
-                name={`proportion${index}`}
-                defaultValue='1'
-                type="text"
-                onChange={(ev) => setItem(index, {proportion: safeEval(ev.target.value, 1)})}
-              />
-            </div>
-            
-            <div className="form-group">
-              <label className="form-label" style={{opacity: 0}}>Action</label>
-              <button 
-                className="btn btn-danger btn-sm" 
-                onClick={() => removeItem(index)}
-              >
-                Remove
-              </button>
+            <div className="form-group portion-group">
+              <div className="portion-controls">
+                <div className="counter-wrapper">
+                  <label className="form-label portion-label">Split?</label>
+                  <div className="counter-control">
+                    {(item.totalPortions ?? 1) > 1 && (
+                      <button 
+                        className="counter-btn"
+                        onClick={() => {
+                          const newTotal = Math.max(1, (item.totalPortions ?? 1) - 1)
+                          const newPaying = Math.min(item.portionsPaying ?? 1, newTotal)
+                          setItem(index, {totalPortions: newTotal, portionsPaying: newPaying})
+                        }}
+                      >
+                        -
+                      </button>
+                    )}
+                    <span className={`counter-display ${(item.totalPortions ?? 1) === 1 ? 'is-text' : 'is-number'}`}>
+                      {(item.totalPortions ?? 1) === 1 ? 'Just me' : (
+                        <>
+                          {item.totalPortions ?? 1}
+                          <svg className="people-icon" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+                          </svg>
+                        </>
+                      )}
+                    </span>
+                    <button 
+                      className="counter-btn"
+                      onClick={() => setItem(index, {totalPortions: (item.totalPortions ?? 1) + 1})}
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+                
+                {(item.totalPortions ?? 1) > 1 && (
+                  <>
+                    <div className="portion-divider"></div>
+                    <div className="counter-wrapper">
+                      <label className="form-label portion-label">Paying for</label>
+                      <div className="counter-control counter-paying">
+                      {(item.portionsPaying ?? 1) > 1 && (
+                        <button 
+                          className="counter-btn"
+                          onClick={() => setItem(index, {portionsPaying: Math.max(1, (item.portionsPaying ?? 1) - 1)})}
+                        >
+                          -
+                        </button>
+                      )}
+                      <span className={`counter-display ${(item.portionsPaying ?? 1) === 1 ? 'is-text' : 'is-number'}`}>
+                        {(item.portionsPaying ?? 1) === 1 ? 'Just me' : (
+                          <>
+                            {item.portionsPaying ?? 1}
+                            <svg className="people-icon" viewBox="0 0 24 24" fill="currentColor">
+                              <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+                            </svg>
+                          </>
+                        )}
+                      </span>
+                      <button 
+                        className="counter-btn"
+                        onClick={() => setItem(index, {portionsPaying: Math.min((item.totalPortions ?? 1), (item.portionsPaying ?? 1) + 1)})}
+                        disabled={(item.portionsPaying ?? 1) >= (item.totalPortions ?? 1)}
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         ))}
@@ -136,11 +201,6 @@ function App() {
           Add Item
         </button>
         
-        <p className="help-text">
-          Proportion is what fraction of the item you owe for. 
-          <br/>
-          Example: 1/2 if you split it with one other person, 1 if it was all yours.
-        </p>
       </section>
       
       <section className="form-section">
