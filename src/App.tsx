@@ -118,14 +118,17 @@ function App() {
                 </td>
                 
                 <td>
-                  <input
-                    className="form-control form-control-sm"
-                    name={`cost${index}`}
-                    type="text"
-                    inputMode="decimal"
-                    onChange={(ev) => setItem(index, {cost: safeEval(ev.target.value, 1)})}
-                    placeholder="0.00"
-                  />
+                  <div className="currency-input-wrapper">
+                    <span className="currency-symbol">$</span>
+                    <input
+                      className="form-control form-control-sm currency-input"
+                      name={`cost${index}`}
+                      type="text"
+                      inputMode="decimal"
+                      onChange={(ev) => setItem(index, {cost: safeEval(ev.target.value, 1)})}
+                      placeholder="0.00"
+                    />
+                  </div>
                 </td>
                 
                 <td>
@@ -174,40 +177,49 @@ function App() {
         <h2 className="section-title">Bill Details</h2>
         <div className="form-group">
           <label className="form-label" htmlFor='sub'>Subtotal (Whole Bill)</label>
-          <input 
-            className="form-control form-control-sm"
-            name='sub' 
-            type='number' 
-            inputMode="decimal"
-            onChange={(ev) => setSubtotal(Number.parseFloat(ev.target.value))} 
-            placeholder="0.00"
-          />
+          <div className="currency-input-wrapper">
+            <span className="currency-symbol">$</span>
+            <input 
+              className="form-control form-control-sm currency-input"
+              name='sub' 
+              type='number' 
+              inputMode="decimal"
+              onChange={(ev) => setSubtotal(Number.parseFloat(ev.target.value))} 
+              placeholder="0.00"
+            />
+          </div>
         </div>
         
         <div className="form-group">
           <label className="form-label" htmlFor='total'>Total (Whole Bill)</label>
-          <input 
-            className="form-control form-control-sm"
-            name='total' 
-            type='number' 
-            inputMode="decimal"
-            onChange={(ev) => setTotal(Number.parseFloat(ev.target.value))} 
-            placeholder="0.00"
-          />
+          <div className="currency-input-wrapper">
+            <span className="currency-symbol">$</span>
+            <input 
+              className="form-control form-control-sm currency-input"
+              name='total' 
+              type='number' 
+              inputMode="decimal"
+              onChange={(ev) => setTotal(Number.parseFloat(ev.target.value))} 
+              placeholder="0.00"
+            />
+          </div>
         </div>
         
         <div className="form-group">
           <label className="form-label" htmlFor='tip'>Tip</label>
           <div style={{display: 'flex', alignItems: 'center'}}>
-            <input 
-              className="form-control form-control-sm"
-              name='tip' 
-              type='number' 
-              inputMode="decimal"
-              defaultValue='20' 
-              onChange={(ev) => setTip(Number.parseFloat(ev.target.value))} 
-              style={{marginRight: '0.5rem'}}
-            />
+            <div className={tipIsRate ? "percent-input-wrapper" : "currency-input-wrapper"} style={{marginRight: '0.5rem'}}>
+              {!tipIsRate && <span className="currency-symbol">$</span>}
+              <input 
+                className={`form-control form-control-sm ${tipIsRate ? 'percent-input' : 'currency-input'}`}
+                name='tip' 
+                type='number' 
+                inputMode="decimal"
+                defaultValue='20' 
+                onChange={(ev) => setTip(Number.parseFloat(ev.target.value))} 
+              />
+              {tipIsRate && <span className="percent-symbol">%</span>}
+            </div>
             
             <div className="radio-group">
               <label className="radio-label">

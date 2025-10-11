@@ -151,6 +151,52 @@
   width: 60px;
 }
 
+.currency-input-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.currency-symbol {
+  position: absolute;
+  left: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-normal);
+  pointer-events: none;
+  font-size: 1rem;
+}
+
+.currency-input {
+  padding-left: 1.25rem;
+}
+
+.currency-input.form-control-sm {
+  width: 70px;
+}
+
+.percent-input-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.percent-symbol {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-normal);
+  pointer-events: none;
+  font-size: 1rem;
+}
+
+.percent-input {
+  padding-right: 1.25rem;
+}
+
+.percent-input.form-control-sm {
+  width: 70px;
+}
+
 .btn {
   display: inline-block;
   font-weight: 500;
@@ -344,5 +390,9 @@
   
   .form-control-sm {
     width: 55px;
+  }
+  
+  .currency-input.form-control-sm {
+    width: 65px;
   }
 }
