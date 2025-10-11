@@ -366,6 +366,12 @@
   }
 }
 
+/* Number inputs in portion columns */
+.items-table td input[type="number"] {
+  width: 100px;
+  text-align: center;
+}
+
 .btn-remove {
   width: 36px;
   height: 36px;
