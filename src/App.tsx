@@ -18,14 +18,14 @@ You owe: $5.69
 interface Item {
   cost: number
   // how many people you're paying for
-  portionsPayingFor: number
+  portionsPaying: number
   // how many people this was split with
   totalPortions: number
   id: string
 }
 
 function emptyItem(): Partial<Item> {
-  return {portionsPayingFor: 1, totalPortions: 1, id: crypto.randomUUID()}
+  return {portionsPaying: 1, totalPortions: 1, id: crypto.randomUUID()}
 }
 
 function App() {
@@ -43,8 +43,8 @@ function App() {
 
   const debt = (() => {
     let mySubtotal = 0
-    for (const {cost, portionsPayingFor, totalPortions} of items) {
-      const proportion = (portionsPayingFor ?? 1) / (totalPortions ?? 1)
+    for (const {cost, portionsPaying, totalPortions} of items) {
+      const proportion = (portionsPaying ?? 1) / (totalPortions ?? 1)
       mySubtotal += (cost ?? 0) * proportion
     }
     const tax = (total ?? mySubtotal) - (subtotal ?? mySubtotal)
@@ -76,7 +76,7 @@ function App() {
   }
 
   function addItem() {
-    setItems(items => [...items, {portionsPayingFor: 1, totalPortions: 1, id: crypto.randomUUID()}])
+    setItems(items => [...items, {portionsPaying: 1, totalPortions: 1, id: crypto.randomUUID()}])
   }
 
   const debtStr = Intl.NumberFormat('en-US', {style: 'currency', currency: 'USD'}).format(debt)
@@ -96,41 +96,46 @@ function App() {
       <section className="form-section">
         <h2 className="section-title">Items</h2>
         
-        {items.map((item, index) => (
-          <div key={item.id} className="item-row">
-            <div className="form-group">
-              <label className="form-label" style={{opacity: 0}}>×</label>
-              <button 
-                className="btn btn-danger btn-sm btn-remove" 
-                onClick={() => removeItem(index)}
-              >
-                ×
-              </button>
-            </div>
-            
-            <div className="form-group">
-              <label className="form-label" htmlFor={`cost${index}`}>Cost</label>
-              <input
-                className="form-control form-control-sm"
-                name={`cost${index}`}
-                type="text"
-                inputMode="decimal"
-                onChange={(ev) => setItem(index, {cost: safeEval(ev.target.value, 1)})}
-                placeholder="0.00"
-              />
-            </div>
-            
-            <div className="form-group portion-group">
-              <div className="portion-controls">
-                <div className="select-wrapper">
-                  <label className="form-label portion-label">Split?</label>
+        <table className="items-table">
+          <thead>
+            <tr>
+              <th></th>
+              <th>Cost</th>
+              <th>Split?</th>
+              <th>Paying for</th>
+            </tr>
+          </thead>
+          <tbody>
+            {items.map((item, index) => (
+              <tr key={item.id}>
+                <td>
+                  <button 
+                    className="btn btn-danger btn-sm btn-remove" 
+                    onClick={() => removeItem(index)}
+                  >
+                    ×
+                  </button>
+                </td>
+                
+                <td>
+                  <input
+                    className="form-control form-control-sm"
+                    name={`cost${index}`}
+                    type="text"
+                    inputMode="decimal"
+                    onChange={(ev) => setItem(index, {cost: safeEval(ev.target.value, 1)})}
+                    placeholder="0.00"
+                  />
+                </td>
+                
+                <td>
                   <select 
                     className="form-control portion-select"
                     value={item.totalPortions ?? 1}
                     onChange={(ev) => {
                       const newTotal = Number(ev.target.value)
-                      const newPaying = Math.min(item.portionsPayingFor ?? 1, newTotal)
-                      setItem(index, {totalPortions: newTotal, portionsPayingFor: newPaying})
+                      const newPaying = Math.min(item.portionsPaying ?? 1, newTotal)
+                      setItem(index, {totalPortions: newTotal, portionsPaying: newPaying})
                     }}
                   >
                     <option value={1}>Just me</option>
@@ -138,26 +143,23 @@ function App() {
                       <option key={n} value={n}>{n} people</option>
                     ))}
                   </select>
-                </div>
+                </td>
                 
-                {(item.totalPortions ?? 1) > 1 && (
-                  <div className="select-wrapper">
-                    <label className="form-label portion-label">Paying for</label>
-                      <select 
-                        className="form-control portion-select"
-                        value={item.portionsPayingFor ?? 1}
-                        onChange={(ev) => setItem(index, {portionsPayingFor: Number(ev.target.value)})}
-                      >
-                        {Array.from({length: item.totalPortions ?? 1}, (_, i) => i + 1).map(n => (
-                          <option key={n} value={n}>{n === 1 ? 'Just me' : `${n} people`}</option>
-                        ))}
-                      </select>
-                    </div>
-                )}
-              </div>
-            </div>
-          </div>
-        ))}
+                <td>
+                  <select 
+                    className="form-control portion-select"
+                    value={item.portionsPaying ?? 1}
+                    onChange={(ev) => setItem(index, {portionsPaying: Number(ev.target.value)})}
+                  >
+                    {Array.from({length: item.totalPortions ?? 1}, (_, i) => i + 1).map(n => (
+                      <option key={n} value={n}>{n === 1 ? 'Just me' : `${n} people`}</option>
+                    ))}
+                  </select>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
         
         <button 
           className="btn btn-primary" 
