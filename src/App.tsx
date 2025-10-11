@@ -1,7 +1,6 @@
 import React, {useState} from 'react';
 import './App.css';
 import QRCode from 'react-qr-code';
-import Tesseract from 'tesseract.js';
 
 /*
 items you're paying for:
@@ -43,7 +42,7 @@ function App() {
   const [isPayingMe, setIsPayingMe] = useState<boolean>(false)
   const [showQRCode, setShowQRCode] = useState<boolean>(false)
   const [isProcessingReceipt, setIsProcessingReceipt] = useState<boolean>(false)
-  const [receiptError, setReceiptError] = useState<string>()
+  const [receiptError, setReceiptError] = useState<string | undefined>("uh oh")
 
   const debt = (() => {
     let mySubtotal = 0
@@ -92,11 +91,10 @@ function App() {
     setReceiptError(undefined)
 
     try {
-      // TODO: Implement OCR and LLM parsing in next steps
-      console.log('Processing receipt:', file.name)
+      console.log('Receipt selected:', file.name, file.type)
       
-      // Placeholder - will be implemented in steps 4 & 5
-      throw new Error('Receipt processing not yet implemented')
+      // TODO: Implement receipt processing
+      throw new Error('Receipt processing not supported yet')
     } catch (error) {
       console.error('Error processing receipt:', error)
       setReceiptError(error instanceof Error ? error.message : 'Failed to process receipt')
@@ -123,10 +121,6 @@ function App() {
       
       <section className="form-section">
         <h2 className="section-title">Items</h2>
-        
-        {receiptError && (
-          <div className="error-message">{receiptError}</div>
-        )}
         
         <div className="items-container">
           {items.map((item, index) => {
@@ -222,7 +216,8 @@ function App() {
           })}
         </div>
         
-        <div className="action-buttons">
+        <div className="action-buttons-container">
+          <div className="action-buttons">
           <input
             type="file"
             id="receipt-upload"
@@ -232,16 +227,21 @@ function App() {
             style={{ display: 'none' }}
             disabled={isProcessingReceipt}
           />
-          <label htmlFor="receipt-upload" className={`btn btn-outline upload-button ${isProcessingReceipt ? 'disabled' : ''}`}>
-            {isProcessingReceipt ? 'Processing...' : '📸 Upload Receipt'}
-          </label>
+            <label htmlFor="receipt-upload" className={`btn btn-outline upload-button ${isProcessingReceipt ? 'disabled' : ''}`}>
+              {isProcessingReceipt ? 'Processing...' : '📸 Upload Receipt'}
+            </label>
+            
+            <button 
+              className="btn btn-primary" 
+              onClick={() => addItem()}
+            >
+              Add Item
+            </button>
+          </div>
           
-          <button 
-            className="btn btn-primary" 
-            onClick={() => addItem()}
-          >
-            Add Item
-          </button>
+          {receiptError && (
+            <div className="error-message">{receiptError}</div>
+          )}
         </div>
         
       </section>
