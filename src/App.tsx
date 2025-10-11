@@ -182,7 +182,7 @@ function App() {
             <input 
               className="form-control form-control-sm currency-input"
               name='sub' 
-              type='number' 
+              type='text' 
               inputMode="decimal"
               onChange={(ev) => setSubtotal(Number.parseFloat(ev.target.value))} 
               placeholder="0.00"
@@ -197,7 +197,7 @@ function App() {
             <input 
               className="form-control form-control-sm currency-input"
               name='total' 
-              type='number' 
+              type='text' 
               inputMode="decimal"
               onChange={(ev) => setTotal(Number.parseFloat(ev.target.value))} 
               placeholder="0.00"
