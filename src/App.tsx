@@ -168,14 +168,25 @@ function App() {
     setItems(items => [...items, {portionsPaying: 1, totalPortions: 1, id: crypto.randomUUID()}])
   }
 
+  function handleReceiptUploadClick() {
+    // Check for API key first
+    const apiKey = localStorage.getItem('openrouter_api_key')
+    if (!apiKey) {
+      setShowApiKeyModal(true)
+      return
+    }
+    
+    // If API key exists, trigger the file input
+    const fileInput = document.getElementById('receipt-upload') as HTMLInputElement
+    fileInput?.click()
+  }
+
   async function handleReceiptUpload(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0]
     if (!file) return
 
-    // Check for API key
     const apiKey = localStorage.getItem('openrouter_api_key')
     if (!apiKey) {
-      setShowApiKeyModal(true)
       event.target.value = '' // Reset file input
       return
     }
@@ -422,9 +433,13 @@ function App() {
                   style={{ display: 'none' }}
                   disabled={isProcessingReceipt}
                 />
-                <label htmlFor="receipt-upload" className={`btn btn-outline upload-button ${isProcessingReceipt ? 'disabled' : ''}`}>
+                <button 
+                  className={`btn btn-outline upload-button ${isProcessingReceipt ? 'disabled' : ''}`}
+                  onClick={handleReceiptUploadClick}
+                  disabled={isProcessingReceipt}
+                >
                   {isProcessingReceipt ? 'Processing...' : '📸 Upload Receipt (beta)'}
-                </label>
+                </button>
               </>
             )}
             
@@ -637,10 +652,10 @@ function App() {
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <h2 className="modal-title">OpenRouter API Key Required</h2>
             <p className="modal-description">
-              To use receipt upload, you need an OpenRouter API key. This will likely incur costs to your OpenRouter account.
+              To use receipt upload, you need an OpenRouter API key. This will incur costs to your OpenRouter account (less than $0.01 per receipt).
             </p>
             <div className="modal-warning">
-              ⚠️ <strong>Security Warning:</strong> Your API key will be stored in your browser's localStorage. 
+              ⚠️ <strong>Security Warning:</strong> Your API key will be stored as plaintext in your browser's localStorage.
               This is NOT secure storage. Only paste your key if you understand the risk.
             </div>
             <input

@@ -1,0 +1,5 @@
+- [ ] [improve friend ux](./planning/friend-ux-improvements.plan.md)
+- [ ] proper backend so people don't have to paste their api key
+- [ ] bulk splitting for appetizers. Like if there were 3 appetizers split amongst the whole table, you shouldn't have to go one by one and split all of them
+- [ ] weird scrolling bug on chrome mobile
+- [ ] after uploading a very big receipt, the screen goes blank. reproduce on laptop and debug. probably just too big for qr code.
