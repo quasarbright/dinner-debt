@@ -149,6 +149,13 @@
   border-radius: 2px;
 }
 
+.tip-included-notice {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 0.25rem;
+  font-style: italic;
+}
+
 .item-controls {
   display: flex;
   align-items: flex-end;

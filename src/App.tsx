@@ -36,6 +36,7 @@ function App() {
   const [total, setTotal] = useState<number>()
   const [tip, setTip] = useState<number>(20)
   const [tipIsRate, setTipIsRate] = useState<boolean>(true)
+  const [tipIncludedInTotal, setTipIncludedInTotal] = useState<boolean>(false)
   // TODO discounts
   // const [discount, setDiscount] = useState<number>()
   // const [discountIsProportional, setDiscountIsProportional] = useState<boolean>(true)
@@ -146,9 +147,13 @@ function App() {
     // Handle tip
     if (data.tipIncludedInTotal) {
       setTip(0)
+      setTipIncludedInTotal(true)
     } else if (data.tip) {
       setTip(data.tip)
       setTipIsRate(false)
+      setTipIncludedInTotal(false)
+    } else {
+      setTipIncludedInTotal(false)
     }
     
     console.log('Form populated successfully')
@@ -352,7 +357,9 @@ function App() {
         </div>
         
         <div className="form-group">
-          <label className="form-label" htmlFor='tip'>Tip</label>
+          <label className="form-label" htmlFor='tip'>
+            Tip{tipIncludedInTotal && ' *'}
+          </label>
           <div style={{display: 'flex', alignItems: 'center'}}>
             <div className={tipIsRate ? "percent-input-wrapper" : "currency-input-wrapper"} style={{marginRight: '0.5rem'}}>
               {!tipIsRate && <span className="currency-symbol">$</span>}
@@ -391,6 +398,11 @@ function App() {
               </label>
             </div>
           </div>
+          {tipIncludedInTotal && (
+            <div className="tip-included-notice">
+              * Gratuity is already included in the total
+            </div>
+          )}
         </div>
       </section>
       
