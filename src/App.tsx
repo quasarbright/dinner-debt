@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import './App.css';
 import QRCode from 'react-qr-code';
 import { processReceipt, type ReceiptData } from './receiptProcessor';
@@ -26,8 +26,38 @@ interface Item {
   id: string
 }
 
+interface FormState {
+  items: Partial<Item>[]
+  subtotal?: number
+  total?: number
+  tip: number
+  tipIsRate: boolean
+  tipIncludedInTotal: boolean
+  isPayingMe: boolean
+}
+
 function emptyItem(): Partial<Item> {
   return {portionsPaying: 1, totalPortions: 1, id: crypto.randomUUID()}
+}
+
+function encodeFormState(state: FormState): string {
+  try {
+    const json = JSON.stringify(state);
+    return btoa(json);
+  } catch (error) {
+    console.error('Failed to encode form state:', error);
+    return '';
+  }
+}
+
+function decodeFormState(encoded: string): FormState | null {
+  try {
+    const json = atob(encoded);
+    return JSON.parse(json);
+  } catch (error) {
+    console.error('Failed to decode form state:', error);
+    return null;
+  }
 }
 
 function App() {
@@ -47,9 +77,33 @@ function App() {
   const [receiptError, setReceiptError] = useState<string>()
   const [showApiKeyModal, setShowApiKeyModal] = useState<boolean>(false)
   const [apiKeyInput, setApiKeyInput] = useState<string>('')
+  const [linkCopied, setLinkCopied] = useState<boolean>(false)
   
   // Feature flag: Check for ?receipt-upload query parameter
   const receiptUploadEnabled = new URLSearchParams(window.location.search).has('receipt-upload-enabled')
+
+  // Load state from URL on mount
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const data = params.get('data');
+    
+    if (data) {
+      const decoded = decodeFormState(data);
+      if (decoded) {
+        // Populate all state from decoded data
+        setItems(decoded.items.map(item => ({
+          ...item,
+          id: item.id || crypto.randomUUID() // Ensure all items have IDs
+        })));
+        setSubtotal(decoded.subtotal);
+        setTotal(decoded.total);
+        setTip(decoded.tip);
+        setTipIsRate(decoded.tipIsRate);
+        setTipIncludedInTotal(decoded.tipIncludedInTotal);
+        setIsPayingMe(decoded.isPayingMe);
+      }
+    }
+  }, []); // Run only once on mount
 
   const debt = (() => {
     let mySubtotal = 0
@@ -166,6 +220,50 @@ function App() {
     localStorage.setItem('openrouter_api_key', apiKeyInput.trim())
     setShowApiKeyModal(false)
     setApiKeyInput('')
+  }
+
+  function getShareUrl(): string {
+    const formState: FormState = {
+      items,
+      subtotal,
+      total,
+      tip,
+      tipIsRate,
+      tipIncludedInTotal,
+      isPayingMe
+    };
+    const encoded = encodeFormState(formState);
+    return `${window.location.origin}${window.location.pathname}?data=${encoded}`;
+  }
+
+  async function handleCopyLink() {
+    const url = getShareUrl();
+    try {
+      await navigator.clipboard.writeText(url);
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 2000);
+    } catch (error) {
+      console.error('Failed to copy link:', error);
+    }
+  }
+
+  async function handleShareLink() {
+    const url = getShareUrl();
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: 'Dinner Debt',
+          text: 'Split the bill with me',
+          url: url
+        });
+      } else {
+        // Fallback to copy if share not available
+        await handleCopyLink();
+      }
+    } catch (error) {
+      // User cancelled or share failed
+      console.error('Failed to share:', error);
+    }
   }
 
   const debtStr = Intl.NumberFormat('en-US', {style: 'currency', currency: 'USD'}).format(debt)
@@ -465,11 +563,42 @@ function App() {
         {showQRCode && (
           <div className="qr-container">
             <QRCode 
-              value={window.location.href}
+              value={getShareUrl()}
               bgColor="var(--background-secondary)"
               fgColor="#dcddde"
               level="M"
+              style={{ width: '100%', height: 'auto', maxWidth: '400px' }}
             />
+            <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+              <button 
+                className="btn btn-primary" 
+                onClick={handleCopyLink}
+                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+              >
+                <span>Copy Link</span>
+                {linkCopied ? (
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M13.5 4L6 11.5L2.5 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                ) : (
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="5" y="4" width="9" height="11" rx="1" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                    <path d="M4 12H3C2.44772 12 2 11.5523 2 11V2C2 1.44772 2.44772 1 3 1H9C9.55228 1 10 1.44772 10 2V3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                  </svg>
+                )}
+              </button>
+              <button 
+                className="btn btn-primary" 
+                onClick={handleShareLink}
+                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+              >
+                <span>Share</span>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M3 7V14C3 14.5523 3.44772 15 4 15H12C12.5523 15 13 14.5523 13 14V7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M8 10V2M8 2L5.5 4.5M8 2L10.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+            </div>
           </div>
         )}
       </section>
