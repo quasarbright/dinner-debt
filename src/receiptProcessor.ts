@@ -55,8 +55,9 @@ Return your response as valid JSON with this structure:
 }
 
 Important edge cases:
-- If gratuity/tip is included in the printed total: set tipIncludedInTotal to true
-- If gratuity is present but NOT in total (hand-written or checkbox): include tip field
+- If tip is hand-written, set tipIncludedInTotal to false and set tip to the amount of the tip.
+- Ignore hand-written total if present. For subtotal and total, use the printed values.
+- Otherwise, if gratuity/tip is included in the printed total and there is no hand-written tip: set tipIncludedInTotal to true and tip to 0.
 - If an item shows "x2" or quantity multiplier: create separate duplicate items`
           }
         ]
