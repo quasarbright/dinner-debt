@@ -103,8 +103,8 @@ function App() {
   const [apiKeyInput, setApiKeyInput] = useState<string>('')
   const [linkCopied, setLinkCopied] = useState<boolean>(false)
   
-  // Feature flag: Check for ?receipt-upload query parameter
-  const receiptUploadEnabled = new URLSearchParams(window.location.search).has('receipt-upload-enabled')
+  // Feature flag: Check for ?receipt-upload query parameter or if API key is stored
+  const receiptUploadEnabled = new URLSearchParams(window.location.search).has('receipt-upload-enabled') || !!localStorage.getItem('openrouter_api_key')
 
   // Load state from URL on mount
   useEffect(() => {
