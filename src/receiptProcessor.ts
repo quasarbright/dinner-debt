@@ -16,6 +16,12 @@ export async function processReceipt(
   file: File,
   apiKey: string
 ): Promise<ReceiptData> {
+  // Check if file is HEIC format (not supported by OpenAI)
+  if (file.type === 'image/heic' || file.type === 'image/heif' || 
+      file.name.toLowerCase().endsWith('.heic') || file.name.toLowerCase().endsWith('.heif')) {
+    throw new Error('HEIC/HEIF format is not supported. Please convert to JPEG or PNG first.');
+  }
+  
   // Convert image to base64
   const base64Image = await fileToBase64(file);
   
@@ -93,8 +99,10 @@ Important edge cases:
 }
 
 async function fileToBase64(file: File): Promise<string> {
-  // Compress image first if it's large
+  // Compress image and convert to JPEG (handles HEIC and other formats)
+  console.log('Original image:', file.size, 'bytes, type:', file.type);
   const compressed = await compressImage(file);
+  console.log('Compressed image:', compressed.size, 'bytes, type:', compressed.type);
   
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
