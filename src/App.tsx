@@ -40,6 +40,30 @@ function emptyItem(): Partial<Item> {
   return {portionsPaying: 1, totalPortions: 1, id: crypto.randomUUID()}
 }
 
+function isMobileDevice(): boolean {
+  return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+}
+
+function getVenmoUrl(amount: string, note: string, recipient?: string): string {
+  const isMobile = isMobileDevice();
+  
+  if (isMobile) {
+    // Use venmo:// scheme for mobile (no @ symbol for recipient)
+    const baseUrl = 'venmo://paycharge?txn=pay';
+    const params = `amount=${amount}&note=${note}`;
+    return recipient 
+      ? `${baseUrl}&${params}&recipients=${recipient}`
+      : `${baseUrl}&${params}`;
+  } else {
+    // Use https:// for desktop (@ symbol required for recipient)
+    const baseUrl = 'https://venmo.com/?txn=pay';
+    const params = `amount=${amount}&note=${note}`;
+    return recipient 
+      ? `${baseUrl}&${params}&recipients=@${recipient}`
+      : `${baseUrl}&${params}`;
+  }
+}
+
 function encodeFormState(state: FormState): string {
   try {
     const json = JSON.stringify(state);
@@ -538,14 +562,14 @@ function App() {
         {isPayingMe ? (
           <a 
             className="action-button venmo-button" 
-            href={`https://venmo.com/?txn=pay&amount=${amountStr}&note=${note}&recipients=@Mike-Delmonaco`}
+            href={getVenmoUrl(amountStr, note, 'Mike-Delmonaco')}
           >
             Pay Mike Delmonaco with Venmo
           </a>
         ): (
           <a 
             className="action-button venmo-button" 
-            href={`https://venmo.com/?txn=pay&amount=${amountStr}&note=${note}`}
+            href={getVenmoUrl(amountStr, note)}
           >
             Pay with Venmo
           </a>
