@@ -4,9 +4,20 @@ A tool for calculating how much you owe someone for dinner.
 
 https://quasarbright.github.io/dinner-debt
 
-## Feature flags
+## Beta Features
 
-- receipt upload is currently flagged behind the `?receipt-upload-enabled` query string parameter
+Some experimental features are available through the settings panel:
+
+### Receipt Upload (Beta)
+Upload a photo of your receipt to automatically extract items, prices, and totals.
+
+**To enable:**
+1. Click the settings icon (⚙️) in the top-right corner
+2. Toggle "Enable Beta Features"
+3. Enter your OpenRouter API key
+4. The receipt upload button will appear when adding items
+
+**Note:** Receipt processing uses the OpenRouter API and will incur small costs (typically less than $0.01 per receipt) to your OpenRouter account. Your API key is stored locally in your browser's localStorage.
 
 ## Install
 

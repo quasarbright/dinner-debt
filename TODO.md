@@ -5,3 +5,4 @@
 - [ ] weird scrolling bug on chrome mobile
 - [ ] after uploading a very big receipt, the screen goes blank. reproduce on laptop and debug. probably just too big for qr code.
 - [ ] SEO. doesn't show up on google.
+- [ ] for main payer, calculate tip and new total for you so can just write that down on the check.
