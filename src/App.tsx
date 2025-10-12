@@ -418,7 +418,6 @@ function App() {
                   type="file"
                   id="receipt-upload"
                   accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
-                  capture="environment"
                   onChange={handleReceiptUpload}
                   style={{ display: 'none' }}
                   disabled={isProcessingReceipt}
