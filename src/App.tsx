@@ -107,6 +107,7 @@ function App() {
     localStorage.getItem('beta_features_enabled') === 'true'
   )
   const [isEditingApiKey, setIsEditingApiKey] = useState<boolean>(false)
+  const [qrCodeError, setQrCodeError] = useState<boolean>(false)
   
   // Feature flag: Check if beta features are enabled (API key will be checked on upload)
   const receiptUploadEnabled = betaFeaturesEnabled
@@ -646,20 +647,36 @@ function App() {
       <section className="form-section">
         <div 
           className="qr-toggle"
-          onClick={() => setShowQRCode(b => !b)}
+          onClick={() => {
+            setQrCodeError(false);
+            setShowQRCode(b => !b);
+          }}
         >
           {showQRCode ? '▼ Hide QR Code' : '▶ Show QR Code'}
         </div>
         
         {showQRCode && (
           <div className="qr-container">
-            <QRCode 
-              value={getShareUrl()}
-              bgColor="var(--background-secondary)"
-              fgColor="#dcddde"
-              level="M"
-              style={{ width: '100%', height: 'auto', maxWidth: '400px' }}
-            />
+            {qrCodeError ? (
+              <div className="error-message" style={{ textAlign: 'center', padding: '2rem' }}>
+                <p style={{ marginBottom: '1rem' }}>
+                  ⚠️ Receipt is too large for QR code generation.
+                </p>
+                <p style={{ fontSize: '0.9em', opacity: 0.8 }}>
+                  Please use the Copy Link or Share Link button.
+                </p>
+              </div>
+            ) : (
+              <QRCodeErrorBoundary onError={() => setQrCodeError(true)}>
+                <QRCode 
+                  value={getShareUrl()}
+                  bgColor="var(--background-secondary)"
+                  fgColor="#dcddde"
+                  level="M"
+                  style={{ width: '100%', height: 'auto', maxWidth: '400px' }}
+                />
+              </QRCodeErrorBoundary>
+            )}
             <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
               <button 
                 className="btn btn-outline" 
@@ -859,6 +876,32 @@ function App() {
       )}
     </div>
   );
+}
+
+class QRCodeErrorBoundary extends React.Component<
+  { children: React.ReactNode; onError: () => void },
+  { hasError: boolean }
+> {
+  constructor(props: any) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error) {
+    console.error('QR Code generation failed:', error);
+    this.props.onError();
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return null;
+    }
+    return this.props.children;
+  }
 }
 
 function safeEval(expr: string, defaultValue: any) {
