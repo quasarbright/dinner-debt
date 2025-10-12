@@ -8,11 +8,11 @@
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
-    "@types/jest": "^27.5.2",
     "@types/node": "^16.18.96",
     "@types/react": "^18.2.79",
     "@types/react-dom": "^18.2.25",
     "ai": "^5.0.68",
+    "browser-image-compression": "^2.0.2",
     "mathjs": "^15.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -25,7 +25,9 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "test": "react-scripts test",
+    "test": "jest --runInBand",
+    "test:watch": "jest --watch --runInBand",
+    "test:coverage": "jest --coverage --runInBand",
     "eject": "react-scripts eject",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d build"
@@ -49,6 +51,16 @@
     ]
   },
   "devDependencies": {
-    "gh-pages": "^6.1.1"
+    "@types/jest": "^30.0.0",
+    "core-js-pure": "^3.46.0",
+    "cross-fetch": "^4.1.0",
+    "dotenv": "^17.2.3",
+    "gh-pages": "^6.1.1",
+    "identity-obj-proxy": "^3.0.0",
+    "jest-canvas-mock": "^2.5.2",
+    "jest-environment-jsdom": "^30.2.0",
+    "ts-jest": "^29.4.5",
+    "web-streams-polyfill": "^4.2.0",
+    "whatwg-fetch": "^3.6.20"
   }
 }

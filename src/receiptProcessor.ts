@@ -1,5 +1,6 @@
 import { generateText } from 'ai';
 import { createOpenAI } from '@ai-sdk/openai';
+import imageCompression from 'browser-image-compression';
 
 export interface ReceiptData {
   items: Array<{
@@ -22,15 +23,20 @@ export async function processReceipt(
     throw new Error('HEIC/HEIF format is not supported. Please convert to JPEG or PNG first.');
   }
   
-  // Convert image to base64
-  const base64Image = await fileToBase64(file);
+  // Compress image and convert to appropriate format
+  console.log('Original image:', file.size, 'bytes, type:', file.type);
+  const compressed = await compressImage(file);
+  console.log('Compressed image:', compressed.size, 'bytes, type:', compressed.type);
+  
+  // Convert to base64 or Buffer depending on environment
+  const imageData = await fileToImageData(compressed);
   
   // Create OpenRouter provider
   const openrouter = createOpenAI({
     baseURL: 'https://openrouter.ai/api/v1',
     apiKey: apiKey,
     headers: {
-      'HTTP-Referer': window.location.origin,
+      'HTTP-Referer': typeof window !== 'undefined' ? window.location.origin : 'http://localhost',
       'X-Title': 'Dinner Debt',
     }
   });
@@ -45,7 +51,7 @@ export async function processReceipt(
         content: [
           {
             type: 'image',
-            image: base64Image,
+            image: imageData,
           },
           {
             type: 'text',
@@ -98,83 +104,61 @@ Important edge cases:
   }
 }
 
-async function fileToBase64(file: File): Promise<string> {
-  // Compress image and convert to JPEG (handles HEIC and other formats)
-  console.log('Original image:', file.size, 'bytes, type:', file.type);
-  const compressed = await compressImage(file);
-  console.log('Compressed image:', compressed.size, 'bytes, type:', compressed.type);
-  
+async function fileToImageData(blob: Blob): Promise<string | Uint8Array> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => {
-      const result = reader.result as string;
-      resolve(result);
+      const result = reader.result;
+      
+      // In Node.js environment (tests), convert to Uint8Array
+      if (typeof process !== 'undefined' && process.versions && process.versions.node) {
+        if (result instanceof ArrayBuffer) {
+          resolve(new Uint8Array(result));
+        } else if (typeof result === 'string') {
+          // If it's a data URL, extract the base64 part and convert to Uint8Array
+          const base64Match = result.match(/^data:image\/\w+;base64,(.+)$/);
+          if (base64Match) {
+            const base64 = base64Match[1];
+            const binaryString = atob(base64);
+            const bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+              bytes[i] = binaryString.charCodeAt(i);
+            }
+            resolve(bytes);
+          } else {
+            reject(new Error('Invalid data URL format'));
+          }
+        }
+      } else {
+        // In browser, return data URL
+        resolve(result as string);
+      }
     };
     reader.onerror = reject;
-    reader.readAsDataURL(compressed);
+    
+    // In Node.js, read as ArrayBuffer; in browser, read as data URL
+    if (typeof process !== 'undefined' && process.versions && process.versions.node) {
+      reader.readAsArrayBuffer(blob);
+    } else {
+      reader.readAsDataURL(blob);
+    }
   });
 }
 
 async function compressImage(file: File, maxSizeBytes: number = 1024 * 1024): Promise<Blob> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const img = new Image();
-      img.onload = () => {
-        // Calculate dimensions to fit within reasonable size
-        let width = img.width;
-        let height = img.height;
-        const maxDimension = 2048; // Max width or height
-        
-        if (width > maxDimension || height > maxDimension) {
-          if (width > height) {
-            height = (height / width) * maxDimension;
-            width = maxDimension;
-          } else {
-            width = (width / height) * maxDimension;
-            height = maxDimension;
-          }
-        }
-        
-        // Create canvas and draw resized image
-        const canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) {
-          reject(new Error('Could not get canvas context'));
-          return;
-        }
-        
-        ctx.drawImage(img, 0, 0, width, height);
-        
-        // Convert to blob with compression
-        // Start with quality 0.9 and reduce if needed
-        let quality = 0.9;
-        const tryCompress = () => {
-          canvas.toBlob((blob) => {
-            if (!blob) {
-              reject(new Error('Failed to compress image'));
-              return;
-            }
-            
-            // If still too large and quality can be reduced, try again
-            if (blob.size > maxSizeBytes && quality > 0.3) {
-              quality -= 0.1;
-              tryCompress();
-            } else {
-              console.log(`Compressed image: ${file.size} bytes -> ${blob.size} bytes (quality: ${quality.toFixed(1)})`);
-              resolve(blob);
-            }
-          }, 'image/jpeg', quality);
-        };
-        
-        tryCompress();
-      };
-      img.onerror = reject;
-      img.src = e.target?.result as string;
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
+  const options = {
+    maxSizeMB: maxSizeBytes / (1024 * 1024), // Convert bytes to MB
+    maxWidthOrHeight: 2048,
+    useWebWorker: false, // Disable web workers for better compatibility in tests
+    fileType: 'image/jpeg',
+  };
+  
+  try {
+    const compressedFile = await imageCompression(file, options);
+    console.log(`Compressed image: ${file.size} bytes -> ${compressedFile.size} bytes`);
+    return compressedFile;
+  } catch (error) {
+    console.error('Image compression failed:', error);
+    throw new Error('Failed to compress image');
+  }
 }
