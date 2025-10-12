@@ -93,6 +93,9 @@ Important edge cases:
 }
 
 async function fileToBase64(file: File): Promise<string> {
+  // Compress image first if it's large
+  const compressed = await compressImage(file);
+  
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => {
@@ -100,7 +103,70 @@ async function fileToBase64(file: File): Promise<string> {
       resolve(result);
     };
     reader.onerror = reject;
-    reader.readAsDataURL(file);
+    reader.readAsDataURL(compressed);
   });
 }
 
+async function compressImage(file: File, maxSizeBytes: number = 1024 * 1024): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        // Calculate dimensions to fit within reasonable size
+        let width = img.width;
+        let height = img.height;
+        const maxDimension = 2048; // Max width or height
+        
+        if (width > maxDimension || height > maxDimension) {
+          if (width > height) {
+            height = (height / width) * maxDimension;
+            width = maxDimension;
+          } else {
+            width = (width / height) * maxDimension;
+            height = maxDimension;
+          }
+        }
+        
+        // Create canvas and draw resized image
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          reject(new Error('Could not get canvas context'));
+          return;
+        }
+        
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        // Convert to blob with compression
+        // Start with quality 0.9 and reduce if needed
+        let quality = 0.9;
+        const tryCompress = () => {
+          canvas.toBlob((blob) => {
+            if (!blob) {
+              reject(new Error('Failed to compress image'));
+              return;
+            }
+            
+            // If still too large and quality can be reduced, try again
+            if (blob.size > maxSizeBytes && quality > 0.3) {
+              quality -= 0.1;
+              tryCompress();
+            } else {
+              console.log(`Compressed image: ${file.size} bytes -> ${blob.size} bytes (quality: ${quality.toFixed(1)})`);
+              resolve(blob);
+            }
+          }, 'image/jpeg', quality);
+        };
+        
+        tryCompress();
+      };
+      img.onerror = reject;
+      img.src = e.target?.result as string;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
