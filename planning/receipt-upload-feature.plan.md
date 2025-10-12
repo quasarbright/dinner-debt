@@ -40,13 +40,17 @@ API key management implemented with:
 - Saves key to localStorage for future sessions
 - Enter key submits the form
 
-### 6. Install and Setup Vercel AI SDK
+### 6. ~~Install and Setup Vercel AI SDK~~ ✅ COMPLETE
 
-- Install `ai` package (`npm install ai`)
-- Setup for client-side usage with OpenRouter
-- Configure with user's API key from localStorage
+Dependencies installed and configured:
+- `ai` package for Vercel AI SDK
+- `@ai-sdk/openai` for OpenAI provider (works with OpenRouter)
+- `mathjs` for calculator tool (safe expression evaluation)
+- `zod` for schema validation
 
-### 7. Implement Vision API Processing with Tool Calling
+### 7. ~~Implement Vision API Processing with Tool Calling~~ ✅ COMPLETE
+
+Vision API implemented with:
 
 Use Vercel AI SDK's `generateText` with tools:
 
@@ -82,15 +86,15 @@ Use Vercel AI SDK's `generateText` with tools:
     ```
 - Handle API errors gracefully with user-friendly messages
 
-### 8. Populate Form from Parsed Data
+### 8. ~~Populate Form from Parsed Data~~ ✅ COMPLETE
 
-After successful API response:
-- Replace existing items with parsed items
-- Create Item objects with names and costs
-- Set default portions (portionsPaying: 1, totalPortions: 1)
-- Pre-fill subtotal and total fields if extracted
-- If `tipIncludedInTotal` is true, set tip to 0. Otherwise if `tip` present, set the tip to flat and that dollar amount.
-- Show success message briefly
+Form population implemented with:
+- Replaces existing items with parsed items
+- Creates Item objects with names and costs
+- Sets default portions (portionsPaying: 1, totalPortions: 1)
+- Pre-fills subtotal and total fields if extracted
+- Handles tip correctly: if tipIncludedInTotal, sets tip to 0; if tip present, sets to flat amount
+- Logs success to console
 
 ## Technical Details
 
@@ -100,11 +104,18 @@ After successful API response:
 - **Cost:** User pays their own OpenRouter credits (~$0.001-0.01 per receipt)
 - **Error Handling:** Show errors in error message UI element
 - **No Backend:** Pure client-side implementation
+- **Testability:** Receipt processing logic extracted to `receiptProcessor.ts`
+  - Takes API key as parameter (can use env var in tests)
+  - Takes File as input (can test with specific receipt images)
+  - Returns structured ReceiptData (easy to assert on)
+  - Example tests in `receiptProcessor.test.ts`
 
-## Files to Modify
+## Files Modified
 
-- `src/App.tsx` - Feature flag, API key management, OpenRouter API integration, form population
-- `src/App.css` - Modal styling for API key input (if needed)
+- `src/App.tsx` - Feature flag, API key management, form population, UI
+- `src/App.css` - Modal styling for API key input
+- `src/receiptProcessor.ts` - Extracted, testable receipt processing logic
+- `src/receiptProcessor.test.ts` - Example unit tests for receipt processing
 
 ## To-dos
 
@@ -113,7 +124,8 @@ After successful API response:
 - [x] Add receipt upload button UI
 - [x] Add query string feature flag check
 - [x] Add API key modal/prompt
-- [ ] Install Vercel AI SDK
-- [ ] Implement OpenRouter Vision API call with tool calling
-- [ ] Parse response and populate form
+- [x] Install Vercel AI SDK
+- [x] Implement OpenRouter Vision API call with tool calling
+- [x] Parse response and populate form
+- [x] Extract receipt processing logic to separate testable module
 

@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
 import './App.css';
 import QRCode from 'react-qr-code';
+import { processReceipt, type ReceiptData } from './receiptProcessor';
 
 /*
 items you're paying for:
@@ -106,8 +107,12 @@ function App() {
     try {
       console.log('Receipt selected:', file.name, file.type)
       
-      // TODO: Implement receipt processing with API key
-      throw new Error('Receipt processing not supported yet')
+      // Process the receipt using the extracted module
+      const parsedData = await processReceipt(file, apiKey)
+      
+      // Populate the form
+      populateFormFromReceipt(parsedData)
+      
     } catch (error) {
       console.error('Error processing receipt:', error)
       setReceiptError(error instanceof Error ? error.message : 'Failed to process receipt')
@@ -116,6 +121,37 @@ function App() {
       // Reset the input so the same file can be selected again
       event.target.value = ''
     }
+  }
+  
+  function populateFormFromReceipt(data: ReceiptData) {
+    // Replace items with parsed items
+    const newItems: Partial<Item>[] = data.items.map((item: ReceiptData['items'][number]) => ({
+      name: item.name,
+      cost: item.cost,
+      portionsPaying: 1,
+      totalPortions: 1,
+      id: crypto.randomUUID()
+    }))
+    
+    setItems(newItems)
+    
+    // Set subtotal and total
+    if (data.subtotal) {
+      setSubtotal(data.subtotal)
+    }
+    if (data.total) {
+      setTotal(data.total)
+    }
+    
+    // Handle tip
+    if (data.tipIncludedInTotal) {
+      setTip(0)
+    } else if (data.tip) {
+      setTip(data.tip)
+      setTipIsRate(false)
+    }
+    
+    console.log('Form populated successfully')
   }
 
   function handleSaveApiKey() {
@@ -151,8 +187,16 @@ function App() {
             
             return (
               <div key={item.id} className="item-card">
-                {(true || item.name) && (
-                  <div className="item-name">{item.name ?? 'milkshake'}</div>
+                {item.name && (
+                  <div className="item-name">
+                    <input
+                      type="text"
+                      className="item-name-input"
+                      value={item.name}
+                      onChange={(ev) => setItem(index, {name: ev.target.value})}
+                      placeholder="Item name"
+                    />
+                  </div>
                 )}
                 
                 <div className="item-controls">
@@ -172,6 +216,7 @@ function App() {
                         name={`cost${index}`}
                         type="text"
                         inputMode="decimal"
+                        value={item.cost ?? ''}
                         onChange={(ev) => setItem(index, {cost: safeEval(ev.target.value, 1)})}
                         placeholder="0.00"
                       />
@@ -283,6 +328,7 @@ function App() {
               name='sub' 
               type='text' 
               inputMode="decimal"
+              value={subtotal ?? ''}
               onChange={(ev) => setSubtotal(Number.parseFloat(ev.target.value))} 
               placeholder="0.00"
             />
@@ -298,6 +344,7 @@ function App() {
               name='total' 
               type='text' 
               inputMode="decimal"
+              value={total ?? ''}
               onChange={(ev) => setTotal(Number.parseFloat(ev.target.value))} 
               placeholder="0.00"
             />
@@ -314,7 +361,7 @@ function App() {
                 name='tip' 
                 type='number' 
                 inputMode="decimal"
-                defaultValue='20' 
+                value={tip} 
                 onChange={(ev) => setTip(Number.parseFloat(ev.target.value))} 
               />
               {tipIsRate && <span className="percent-symbol">%</span>}
@@ -426,7 +473,7 @@ function App() {
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <h2 className="modal-title">OpenRouter API Key Required</h2>
             <p className="modal-description">
-              To use receipt upload, you need an OpenRouter API key.
+              To use receipt upload, you need an OpenRouter API key. This will likely incur costs to your OpenRouter account.
             </p>
             <div className="modal-warning">
               ⚠️ <strong>Security Warning:</strong> Your API key will be stored in your browser's localStorage. 

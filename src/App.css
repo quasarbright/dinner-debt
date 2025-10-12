@@ -132,6 +132,23 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
+.item-name-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--header-primary);
+  padding: 0;
+  outline: none;
+}
+
+.item-name-input:focus {
+  outline: 1px solid var(--interactive-active);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
 .item-controls {
   display: flex;
   align-items: flex-end;
