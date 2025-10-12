@@ -4,6 +4,10 @@ A tool for calculating how much you owe someone for dinner.
 
 https://quasarbright.github.io/dinner-debt
 
+## Feature flags
+
+- receipt upload is currently flagged behind the `?receipt-upload-enabled` query string parameter
+
 ## Install
 
 ```sh
