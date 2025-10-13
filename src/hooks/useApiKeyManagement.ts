@@ -1,55 +1,26 @@
-// Manage API key storage and modal state.
-// Handles API key input, saving, updating, deleting, and display masking.
-
-import { useState } from 'react';
+// Manage API key storage in localStorage.
+// Provides simple interface for saving, retrieving, and deleting the OpenRouter API key.
 
 export function useApiKeyManagement() {
-  const [showApiKeyModal, setShowApiKeyModal] = useState<boolean>(false);
-  const [apiKeyInput, setApiKeyInput] = useState<string>('');
-  const [isEditingApiKey, setIsEditingApiKey] = useState<boolean>(false);
-
-  const handleSaveApiKey = () => {
-    if (!apiKeyInput.trim()) {
-      return;
-    }
-    localStorage.setItem('openrouter_api_key', apiKeyInput.trim());
-    setShowApiKeyModal(false);
-    setApiKeyInput('');
+  const getApiKey = (): string | null => {
+    return localStorage.getItem('openrouter_api_key');
   };
 
-  const handleUpdateApiKey = () => {
-    if (!apiKeyInput.trim()) {
-      return;
-    }
-    localStorage.setItem('openrouter_api_key', apiKeyInput.trim());
-    setApiKeyInput('');
-    setIsEditingApiKey(false);
+  const saveApiKey = (apiKey: string) => {
+    localStorage.setItem('openrouter_api_key', apiKey);
   };
 
-  const handleDeleteApiKey = () => {
+  const deleteApiKey = () => {
     if (window.confirm('Are you sure you want to delete your API key?')) {
       localStorage.removeItem('openrouter_api_key');
-      setApiKeyInput('');
-      setIsEditingApiKey(false);
+      return true;
     }
-  };
-
-  const maskApiKey = (key: string): string => {
-    if (key.length <= 10) return key;
-    return key.slice(0, 8) + '...' + key.slice(-6);
+    return false;
   };
 
   return {
-    showApiKeyModal,
-    setShowApiKeyModal,
-    apiKeyInput,
-    setApiKeyInput,
-    isEditingApiKey,
-    setIsEditingApiKey,
-    handleSaveApiKey,
-    handleUpdateApiKey,
-    handleDeleteApiKey,
-    maskApiKey
+    getApiKey,
+    saveApiKey,
+    deleteApiKey
   };
 }
-

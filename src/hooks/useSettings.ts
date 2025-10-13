@@ -1,5 +1,5 @@
 // Manage settings modal and beta features.
-// Handles settings modal state and beta feature toggles stored in localStorage.
+// Handles settings modal visibility and beta feature toggle stored in localStorage.
 
 import { useState } from 'react';
 
@@ -9,15 +9,7 @@ export function useSettings() {
     localStorage.getItem('beta_features_enabled') === 'true'
   );
 
-  const openSettings = () => {
-    setShowSettingsModal(true);
-  };
-
-  const closeSettings = () => {
-    setShowSettingsModal(false);
-  };
-
-  const handleToggleBetaFeatures = (enabled: boolean) => {
+  const toggleBetaFeatures = (enabled: boolean) => {
     setBetaFeaturesEnabled(enabled);
     localStorage.setItem('beta_features_enabled', enabled.toString());
   };
@@ -26,9 +18,6 @@ export function useSettings() {
     showSettingsModal,
     setShowSettingsModal,
     betaFeaturesEnabled,
-    openSettings,
-    closeSettings,
-    handleToggleBetaFeatures
+    toggleBetaFeatures
   };
 }
-

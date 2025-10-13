@@ -13,20 +13,22 @@ import { useReceiptUpload } from './hooks/useReceiptUpload';
 import { useApiKeyManagement } from './hooks/useApiKeyManagement';
 import { useSettings } from './hooks/useSettings';
 import { useShareLink } from './hooks/useShareLink';
+import { ApiKeyModal } from './components/ApiKeyModal';
+import { SettingsModal } from './components/SettingsModal';
 
 function App() {
   // Initialize all state management hooks
   const {
-    items,
-    subtotal,
+      items,
+      subtotal,
     setSubtotal,
-    total,
+      total,
     setTotal,
-    tip,
+      tip,
     setTip,
-    tipIsRate,
+      tipIsRate,
     setTipIsRate,
-    tipIncludedInTotal,
+      tipIncludedInTotal,
     isPayingMe,
     setIsPayingMe,
     setItem,
@@ -40,22 +42,12 @@ function App() {
     showSettingsModal,
     setShowSettingsModal,
     betaFeaturesEnabled,
-    openSettings,
-    handleToggleBetaFeatures
+    toggleBetaFeatures
   } = useSettings();
 
-  const {
-    showApiKeyModal,
-    setShowApiKeyModal,
-    apiKeyInput,
-    setApiKeyInput,
-    isEditingApiKey,
-    setIsEditingApiKey,
-    handleSaveApiKey,
-    handleUpdateApiKey,
-    handleDeleteApiKey,
-    maskApiKey
-  } = useApiKeyManagement();
+  const { getApiKey, saveApiKey, deleteApiKey } = useApiKeyManagement();
+
+  const [showApiKeyModal, setShowApiKeyModal] = React.useState(false);
 
   const {
     isProcessingReceipt,
@@ -64,10 +56,7 @@ function App() {
     handleReceiptUpload
   } = useReceiptUpload({
     onPopulateForm: populateFormFromReceipt,
-    onApiKeyMissing: () => {
-      setShowSettingsModal(true);
-      setIsEditingApiKey(true);
-    }
+    onApiKeyMissing: () => setShowApiKeyModal(true)
   });
 
   const {
@@ -96,7 +85,7 @@ function App() {
       <header className="app-header">
         <button 
           className="settings-button" 
-          onClick={openSettings}
+          onClick={() => setShowSettingsModal(true)}
           title="Settings"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -459,163 +448,24 @@ function App() {
         <a href="https://github.com/quasarbright/dinner-debt">Source Code</a>
       </footer>
       
-      {showApiKeyModal && (
-        <div className="modal-overlay" onClick={() => setShowApiKeyModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h2 className="modal-title">OpenRouter API Key Required</h2>
-            <p className="modal-description">
-              To use receipt upload, you need an OpenRouter API key. This will incur costs to your OpenRouter account (less than $0.01 per receipt).
-            </p>
-            <div className="modal-warning">
-              ⚠️ <strong>Security Warning:</strong> Your API key will be stored as plaintext in your browser's localStorage.
-              This is NOT secure storage. Only paste your key if you understand the risk.
-            </div>
-            <input
-              type="password"
-              className="form-control api-key-input"
-              placeholder="sk-or-v1-..."
-              value={apiKeyInput}
-              onChange={(e) => setApiKeyInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSaveApiKey()}
-            />
-            <div className="modal-actions">
-              <button 
-                className="btn btn-outline" 
-                onClick={() => {
-                  setShowApiKeyModal(false)
-                  setApiKeyInput('')
-                }}
-              >
-                Cancel
-              </button>
-              <button 
-                className="btn btn-primary" 
-                onClick={handleSaveApiKey}
-                disabled={!apiKeyInput.trim()}
-              >
-                Save Key
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ApiKeyModal
+        show={showApiKeyModal}
+        onClose={() => setShowApiKeyModal(false)}
+        onSave={(apiKey) => {
+          saveApiKey(apiKey);
+          setShowApiKeyModal(false);
+        }}
+      />
 
-      {showSettingsModal && (
-        <div className="modal-overlay" onClick={() => setShowSettingsModal(false)}>
-          <div className="modal-content settings-modal" onClick={(e) => e.stopPropagation()}>
-            <h2 className="modal-title">Settings</h2>
-            
-            <div className="settings-section">
-              <div className="settings-section-header">
-                <h3 className="settings-section-title">Beta Features</h3>
-              </div>
-              <p className="settings-description">
-                Access experimental features like receipt upload
-              </p>
-              
-              <label className="toggle-label">
-                <input
-                  type="checkbox"
-                  className="toggle-checkbox"
-                  checked={betaFeaturesEnabled}
-                  onChange={(e) => handleToggleBetaFeatures(e.target.checked)}
-                />
-                <span className="toggle-switch"></span>
-                <span className="toggle-text">Enable Beta Features</span>
-              </label>
-            </div>
-
-            {betaFeaturesEnabled && (
-              <div className="settings-section">
-                <div className="settings-section-header">
-                  <h3 className="settings-section-title">API Key</h3>
-                </div>
-                <p className="settings-description">
-                  OpenRouter API key for receipt processing. This will incur costs to your OpenRouter account (less than $0.01 per receipt).
-                </p>
-                
-                <div className="modal-warning">
-                  ⚠️ <strong>Security Warning:</strong> Your API key is stored as plaintext in your browser's localStorage. This is NOT secure storage.
-                </div>
-
-                {(() => {
-                  const currentKey = localStorage.getItem('openrouter_api_key')
-                  
-                  if (isEditingApiKey || !currentKey) {
-                    return (
-                      <>
-                        <input
-                          type="password"
-                          className="form-control api-key-input"
-                          placeholder="sk-or-v1-..."
-                          value={apiKeyInput}
-                          onChange={(e) => setApiKeyInput(e.target.value)}
-                          onKeyDown={(e) => e.key === 'Enter' && handleUpdateApiKey()}
-                        />
-                        <div className="settings-actions">
-                          {currentKey && (
-                            <button 
-                              className="btn btn-outline" 
-                              onClick={() => {
-                                setIsEditingApiKey(false)
-                                setApiKeyInput('')
-                              }}
-                            >
-                              Cancel
-                            </button>
-                          )}
-                          <button 
-                            className="btn btn-primary" 
-                            onClick={handleUpdateApiKey}
-                            disabled={!apiKeyInput.trim()}
-                          >
-                            {currentKey ? 'Update Key' : 'Save Key'}
-                          </button>
-                        </div>
-                      </>
-                    )
-                  } else {
-                    return (
-                      <>
-                        <div className="api-key-display">
-                          <code>{maskApiKey(currentKey)}</code>
-                        </div>
-                        <div className="settings-actions">
-                          <button 
-                            className="btn btn-outline" 
-                            onClick={() => setIsEditingApiKey(true)}
-                          >
-                            Update Key
-                          </button>
-                          <button 
-                            className="btn btn-danger" 
-                            onClick={handleDeleteApiKey}
-                          >
-                            Delete Key
-                          </button>
-                        </div>
-                      </>
-                    )
-                  }
-                })()}
-              </div>
-            )}
-
-            <div className="modal-actions">
-              <button 
-                className="btn btn-primary" 
-                onClick={() => {
-                  setShowSettingsModal(false)
-                  setIsEditingApiKey(false)
-                  setApiKeyInput('')
-                }}
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <SettingsModal
+        show={showSettingsModal}
+        onClose={() => setShowSettingsModal(false)}
+        betaFeaturesEnabled={betaFeaturesEnabled}
+        onToggleBetaFeatures={toggleBetaFeatures}
+        apiKey={getApiKey()}
+        onSaveApiKey={saveApiKey}
+        onDeleteApiKey={deleteApiKey}
+      />
     </div>
   );
 }
