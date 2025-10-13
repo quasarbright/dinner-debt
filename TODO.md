@@ -1,5 +1,6 @@
 - [ ] [improve friend ux](./planning/friend-ux-improvements.plan.md)
   - [ ] instead of friends x-ing out what they didn't get, have them just check what they did get. Most stuff, they didn't get. Maybe a sequence of pages instead of just one.
+- [ ] test duplicate item handling for receipt upload
 - [ ] proper backend so people don't have to paste their api key
 - [ ] bulk splitting for appetizers. Like if there were 3 appetizers split amongst the whole table, you shouldn't have to go one by one and split all of them
 - [ ] weird scrolling bug on chrome mobile
