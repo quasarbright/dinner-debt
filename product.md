@@ -10,7 +10,11 @@ I am paying for dinner with friends and want them to venmo me what they owe. The
 
 I open up dinner debt, scan the receipt, specify I'm the one getting venmo'ed, dinner debt fills out the receipt details, I specify which items were split.
 I tell my friends to scan the QR code for a link or send them the link, this link prefills the receipt details.
-I tell them to x out what they didn't eat and select how many people they're paying for on split items, they click "pay with venmo", it takes them to the venmo app with the price and recipient pre-filled, and then they venmo me how much they owe.
+Friends see a simple 3-step wizard:
+1. Check the items they ate (no need to x out everything they didn't eat)
+2. Configure splits for any shared items
+3. See their total and pay with Venmo (recipient pre-filled)
+The wizard is mobile-optimized and foolproof - one task per screen.
 
 ### non-main payer just wants to calculate how much they owe someone
 
@@ -24,6 +28,8 @@ I open up dinner debt, scan the receipt, specify I'm not the one getting venmo'e
 - one of the use-cases involves a lot of people who have never heard of dinner-debt using it, so getting them on dinner-debt must be a quick and smooth experience
 - users are probably lazy/impatient and possibly drunk, so ux for people who owe the primary payer needs to be as seamless, intuitive, simple, and fool-proof as possible.
   - Having them scan a qr code or click on a link is easy enough, and the less they have to do or understand, the better. They should be able to use this without ever having seen it before, and the main payer shouldn't have to tell them anything. What they have to do should be obvious.
+  - Friends get a simplified 3-step wizard that breaks down the task: (1) check items you ate, (2) configure splits, (3) pay. One task per screen reduces cognitive load.
+  - Most people only ate 2-5 items out of 10-30 on the receipt, so checking what you ate is much faster than x-ing out everything you didn't eat.
   - Requiring users make an account is too much friction. Want it to be quick.
   - Requiring users to download an app is too much friction. A website is quick and accessible via a link or qr code, low-commitment.
   - The less stuff users (especially friends of the main payer) have to fill in, the better

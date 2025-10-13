@@ -15,6 +15,8 @@ import { useSettings } from './hooks/useSettings';
 import { useShareLink } from './hooks/useShareLink';
 import { ApiKeyModal } from './components/ApiKeyModal';
 import { SettingsModal } from './components/SettingsModal';
+import { FriendWizard } from './components/FriendWizard';
+import { SplitControls } from './components/SplitControls';
 
 function App() {
   // Initialize all state management hooks
@@ -73,6 +75,12 @@ function App() {
   // Feature flag: Check if beta features are enabled
   const receiptUploadEnabled = betaFeaturesEnabled;
 
+  // Detect if user is a friend (came from shared link with ?data= parameter)
+  const isFriend = React.useMemo(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.has('data');
+  }, []);
+
   // Calculate debt using utility function
   const debt = calculateDebt({ items, subtotal, total, tip, tipIsRate, tipIncludedInTotal });
 
@@ -100,6 +108,19 @@ function App() {
         </p>
       </header>
       
+      {/* Conditional rendering: show FriendWizard for friends, full form for session creators */}
+      {isFriend ? (
+        <FriendWizard
+          items={items}
+          subtotal={subtotal}
+          total={total}
+          tip={tip}
+          tipIsRate={tipIsRate}
+          tipIncludedInTotal={tipIncludedInTotal}
+          isPayingMe={isPayingMe}
+        />
+      ) : (
+        <>
       <section className="form-section">
         <h2 className="section-title">Items</h2>
         
@@ -146,60 +167,18 @@ function App() {
                     </div>
                   </div>
                   
-                  <div className="control-group">
-                    <label className="control-label">Split?</label>
-                    {(item.totalPortions ?? 1) < 0 || item.totalPortions === 0 ? (
-                      <input
-                        className="form-control form-control-sm"
-                        type="number"
-                        inputMode="numeric"
-                        value={item.totalPortions === 0 ? '' : Math.abs(item.totalPortions ?? 1)}
-                        onChange={(ev) => {
-                          const value = ev.target.value
-                          const newTotal = value === '' ? 0 : Number(value)
-                          const actualTotal = Math.max(1, newTotal)
-                          const newPaying = Math.min(item.portionsPaying ?? 1, actualTotal)
-                          setItem(index, {totalPortions: newTotal === 0 ? 0 : -Math.abs(newTotal), portionsPaying: newPaying})
-                        }}
-                      />
-                    ) : (
-                      <select 
-                        className="form-control portion-select"
-                        value={item.totalPortions ?? 1}
-                        onChange={(ev) => {
-                          const value = ev.target.value
-                          if (value === 'more') {
-                            const newTotal = maxSplit + 1
-                            const newPaying = Math.min(item.portionsPaying ?? 1, newTotal)
-                            setItem(index, {totalPortions: -newTotal, portionsPaying: newPaying})
-                          } else {
-                            const newTotal = Number(value)
-                            const newPaying = Math.min(item.portionsPaying ?? 1, newTotal)
-                            setItem(index, {totalPortions: newTotal, portionsPaying: newPaying})
-                          }
-                        }}
-                      >
-                        <option value={1}>Just me</option>
-                        {Array.from({length: maxSplit - 1}, (_, i) => i + 2).map(n => (
-                          <option key={n} value={n}>{n} people</option>
-                        ))}
-                        <option value="more">...more</option>
-                      </select>
-                    )}
-                  </div>
-                  
-                  <div className="control-group">
-                    <label className="control-label">Paying for</label>
-                    <select 
-                      className="form-control portion-select"
-                      value={item.portionsPaying ?? 1}
-                      onChange={(ev) => setItem(index, {portionsPaying: Number(ev.target.value)})}
-                    >
-                      {Array.from({length: Math.max(1, Math.abs(item.totalPortions ?? 1))}, (_, i) => i + 1).map(n => (
-                        <option key={n} value={n}>{n === 1 ? 'Just me' : `${n} people`}</option>
-                      ))}
-                    </select>
-                  </div>
+                  <SplitControls
+                    totalPortions={item.totalPortions ?? 1}
+                    portionsPaying={item.portionsPaying ?? 1}
+                    maxSplit={maxSplit}
+                    onTotalPortionsChange={(newTotal) => {
+                      const newPaying = Math.min(item.portionsPaying ?? 1, Math.abs(newTotal));
+                      setItem(index, {totalPortions: newTotal, portionsPaying: newPaying});
+                    }}
+                    onPortionsPayingChange={(newPaying) => {
+                      setItem(index, {portionsPaying: newPaying});
+                    }}
+                  />
                 </div>
               </div>
             )
@@ -441,6 +420,8 @@ function App() {
           </div>
         )}
       </section>
+        </>
+      )}
       
       <footer className="app-footer">
         Created by Mike Delmonaco

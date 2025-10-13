@@ -688,3 +688,300 @@
     right: 0.75rem;
   }
 }
+
+/* ========================================
+   Friend Wizard Styles
+   ======================================== */
+
+.wizard-container {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.wizard-progress {
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-bottom: 1.5rem;
+  padding: 0.75rem;
+  background-color: var(--background-secondary);
+  border-radius: var(--border-radius);
+}
+
+.wizard-step {
+  background-color: var(--background-secondary);
+  border-radius: var(--border-radius);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.wizard-step-title {
+  font-size: 1.5rem;
+  color: var(--header-primary);
+  margin-bottom: 0.5rem;
+}
+
+.wizard-step-description {
+  color: var(--text-muted);
+  margin-bottom: 1.5rem;
+  font-size: 0.95rem;
+}
+
+/* Step 1: Item Selection */
+.payment-recipient-selector {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background-color: var(--background-tertiary);
+  border-radius: var(--border-radius);
+}
+
+.payment-recipient-question {
+  color: var(--text-normal);
+  margin-bottom: 0.75rem;
+  font-weight: 500;
+}
+
+.item-checkbox-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.item-checkbox-item {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  background-color: var(--background-tertiary);
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.item-checkbox-item:hover {
+  background-color: var(--background-modifier-hover);
+}
+
+.item-checkbox-input {
+  width: 20px;
+  height: 20px;
+  margin-right: 1rem;
+  cursor: pointer;
+  accent-color: var(--interactive-accent);
+}
+
+.item-checkbox-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex: 1;
+  font-size: 1rem;
+}
+
+.item-checkbox-name {
+  color: var(--text-normal);
+  flex: 1;
+  margin-right: 1rem;
+}
+
+.item-checkbox-cost {
+  color: var(--header-primary);
+  font-weight: 600;
+}
+
+.running-total {
+  text-align: center;
+  padding: 0.75rem;
+  background-color: var(--background-modifier-accent);
+  border-radius: var(--border-radius);
+  color: var(--text-normal);
+  margin-bottom: 1rem;
+}
+
+/* Step 2: Split Configuration */
+.split-config-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.split-config-item {
+  padding: 1rem;
+  background-color: var(--background-tertiary);
+  border-radius: var(--border-radius);
+}
+
+.split-config-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.split-config-name {
+  color: var(--text-normal);
+  font-weight: 500;
+}
+
+.split-config-cost {
+  color: var(--header-primary);
+  font-weight: 600;
+}
+
+.split-config-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.split-config-label {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.split-config-input {
+  padding: 0.5rem;
+  border-radius: var(--border-radius);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: var(--background-modifier-accent);
+  color: var(--text-normal);
+  font-size: 1rem;
+}
+
+/* Step 3: Payment Summary */
+.payment-summary {
+  margin-bottom: 1.5rem;
+}
+
+.payment-summary-title {
+  font-size: 1rem;
+  color: var(--text-muted);
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.payment-summary-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background-color: var(--background-tertiary);
+  border-radius: var(--border-radius);
+}
+
+.payment-summary-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--text-normal);
+}
+
+.payment-summary-item-name {
+  flex: 1;
+}
+
+.payment-summary-item-split {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.payment-summary-item-cost {
+  font-weight: 600;
+  color: var(--header-primary);
+}
+
+.payment-summary-divider {
+  height: 1px;
+  background-color: rgba(255, 255, 255, 0.1);
+  margin: 0.5rem 0;
+}
+
+.payment-amount {
+  text-align: center;
+  padding: 1.5rem;
+  background-color: var(--background-modifier-accent);
+  border-radius: var(--border-radius);
+  margin-bottom: 1rem;
+}
+
+.payment-amount-label {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.payment-amount-value {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--interactive-accent);
+}
+
+.payee-info {
+  text-align: center;
+  color: var(--text-normal);
+  margin-bottom: 1rem;
+  font-size: 1rem;
+}
+
+.wizard-actions {
+  margin-bottom: 1rem;
+}
+
+.venmo-button-large {
+  width: 100%;
+  padding: 1.25rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+/* Wizard Navigation */
+.wizard-nav {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+  margin-top: 1.5rem;
+}
+
+.btn-wizard-next,
+.btn-wizard-back {
+  flex: 1;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  min-height: 44px;
+}
+
+.btn-wizard-next:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Mobile Optimizations for Wizard */
+@media (max-width: 600px) {
+  .wizard-step {
+    padding: 1rem;
+  }
+
+  .wizard-step-title {
+    font-size: 1.25rem;
+  }
+
+  .payment-amount-value {
+    font-size: 2rem;
+  }
+
+  .item-checkbox-item {
+    padding: 0.75rem;
+  }
+
+  .split-config-item {
+    padding: 0.75rem;
+  }
+}
