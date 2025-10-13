@@ -10,6 +10,15 @@ export async function processReceipt(
   file: File,
   apiKey: string
 ): Promise<ReceiptData> {
+  // Safety check: Prevent accidental API calls during tests (unless explicitly allowed)
+  if (process.env.NODE_ENV === 'test' && process.env.ALLOW_RECEIPT_API_CALLS !== 'true') {
+    throw new Error(
+      'Receipt processor cannot be called in test environment to prevent accidental API costs. ' +
+      'Use the automatic mock in __mocks__/receiptProcessor.ts instead, or set ' +
+      'ALLOW_RECEIPT_API_CALLS=true for integration tests.'
+    );
+  }
+
   // Check if file is HEIC format (not supported by OpenAI)
   if (file.type === 'image/heic' || file.type === 'image/heif' || 
       file.name.toLowerCase().endsWith('.heic') || file.name.toLowerCase().endsWith('.heif')) {

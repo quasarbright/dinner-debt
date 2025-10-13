@@ -1,5 +1,11 @@
 // Unit tests for receipt processing functionality.
 // Tests various receipt formats and edge cases like handwritten tips and included gratuity.
+//
+// IMPORTANT: These tests make real API calls and cost money!
+// - They are excluded from normal test runs via jest.config.js
+// - Run explicitly with: npm run test:receipt
+// - Requires OPENROUTER_API_KEY in .env.test
+// - Sets ALLOW_RECEIPT_API_CALLS=true to bypass safety check
 
 import { processReceipt } from './receiptProcessor';
 import type { ReceiptData } from './types';
@@ -12,6 +18,12 @@ const envPath = path.resolve(__dirname, '..', '.env.test');
 if (fs.existsSync(envPath)) {
   dotenv.config({ path: envPath });
 }
+
+// Allow real API calls for this specific test file
+process.env.ALLOW_RECEIPT_API_CALLS = 'true';
+
+// DO NOT add jest.mock('../receiptProcessor') here - we want the real implementation
+// for these integration tests
 
 describe('processReceipt', () => {
   const API_KEY = process.env.OPENROUTER_API_KEY;
