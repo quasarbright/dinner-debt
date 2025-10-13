@@ -390,6 +390,9 @@
   font-size: 0.95rem;
   padding: 0.5rem 0;
   user-select: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .qr-toggle:hover {
@@ -806,29 +809,74 @@
   margin-bottom: 1.5rem;
 }
 
-.split-config-item {
-  padding: 1rem;
+/* Card-based design with collapsible controls */
+.split-config-card {
   background-color: var(--background-tertiary);
   border-radius: var(--border-radius);
+  border: 2px solid transparent;
+  transition: border-color 0.2s;
 }
 
-.split-config-header {
+.split-config-card.expanded {
+  border-color: var(--interactive-accent);
+}
+
+.split-config-card-header {
+  width: 100%;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 1rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  color: inherit;
+  transition: background-color 0.2s;
 }
 
-.split-config-name {
+.split-config-card-header:hover {
+  background-color: var(--background-modifier-hover);
+}
+
+.split-config-card-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.split-config-card-name {
   color: var(--text-normal);
-  font-weight: 500;
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: 0.25rem;
 }
 
-.split-config-cost {
+.split-config-card-status {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.split-config-card-cost {
   color: var(--header-primary);
   font-weight: 600;
+  font-size: 1rem;
+  margin-left: 1rem;
+}
+
+.split-config-card-toggle {
+  color: var(--interactive-accent);
+  font-size: 0.75rem;
+  min-width: 1rem;
+  flex-shrink: 0;
+}
+
+.split-config-card-body {
+  padding: 1.25rem 1rem 1rem 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  margin-top: 0.75rem;
 }
 
 .split-config-field {
@@ -981,7 +1029,16 @@
     padding: 0.75rem;
   }
 
-  .split-config-item {
+  .split-config-card-header {
     padding: 0.75rem;
+  }
+
+  .split-config-card-body {
+    padding: 1rem 0.75rem 0.75rem 0.75rem;
+    margin-top: 0.5rem;
+  }
+
+  .split-config-card-cost {
+    margin-left: 0.5rem;
   }
 }

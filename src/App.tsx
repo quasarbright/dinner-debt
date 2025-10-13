@@ -17,6 +17,7 @@ import { ApiKeyModal } from './components/ApiKeyModal';
 import { SettingsModal } from './components/SettingsModal';
 import { FriendWizard } from './components/FriendWizard';
 import { SplitControls } from './components/SplitControls';
+import { ExpandIndicator } from './components/ExpandIndicator';
 
 function App() {
   // Initialize all state management hooks
@@ -362,7 +363,8 @@ function App() {
             setShowQRCode(b => !b);
           }}
         >
-          {showQRCode ? '▼ Hide QR Code' : '▶ Show QR Code'}
+          <ExpandIndicator isExpanded={showQRCode} />
+          {showQRCode ? 'Hide QR Code' : 'Show QR Code'}
         </div>
         
         {showQRCode && (

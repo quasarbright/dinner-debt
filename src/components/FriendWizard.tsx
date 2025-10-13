@@ -7,6 +7,7 @@ import type { Item } from '../types';
 import { calculateDebt } from '../utils/debtCalculation';
 import { getVenmoUrl } from '../utils/venmoUrl';
 import { SplitControls } from './SplitControls';
+import { ExpandIndicator } from './ExpandIndicator';
 
 interface FriendWizardProps {
   items: Partial<Item>[];
@@ -38,6 +39,7 @@ export function FriendWizard(props: FriendWizardProps) {
   const [selectedItemIds, setSelectedItemIds] = useState<Set<string>>(new Set());
   const [friendSplitConfig, setFriendSplitConfig] = useState<Map<string, SplitConfig>>(new Map());
   const [isPayingMe, setIsPayingMe] = useState<boolean>(initialIsPayingMe);
+  const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
 
   // Get selected items with friend's split configuration
   const selectedItems = useMemo(() => {
@@ -120,15 +122,6 @@ export function FriendWizard(props: FriendWizardProps) {
         newSet.add(itemId);
       }
       return newSet;
-    });
-  };
-
-  // Step 2: Split Configuration
-  const updateSplitConfig = (itemId: string, config: SplitConfig) => {
-    setFriendSplitConfig(prev => {
-      const newConfig = new Map(prev);
-      newConfig.set(itemId, config);
-      return newConfig;
     });
   };
 
@@ -219,33 +212,71 @@ export function FriendWizard(props: FriendWizardProps) {
                 currency: 'USD'
               }).format(item.cost ?? 0);
 
-              return (
-                <div key={item.id} className="split-config-item">
-                  <div className="split-config-header">
-                    {item.name && <div className="split-config-name">{item.name}</div>}
-                    <div className="split-config-cost">{costStr}</div>
-                  </div>
+              const isExpanded = expandedItemId === item.id;
+              const totalPortions = Math.abs(config.totalPortions);
+              const isSplit = totalPortions > 1;
+              
+              // Status text for collapsed state
+              const statusText = isSplit 
+                ? `Split ${totalPortions} ways, paying for ${config.portionsPaying}`
+                : 'Just me';
 
-                  <div className="item-controls">
-                    <SplitControls
-                      totalPortions={config.totalPortions}
-                      portionsPaying={config.portionsPaying}
-                      maxSplit={Math.max(8, ...selectedItems.map(i => Math.abs(i.totalPortions ?? 1)))}
-                      onTotalPortionsChange={(newTotal) => {
-                        const newPaying = Math.min(config.portionsPaying, Math.abs(newTotal));
-                        updateSplitConfig(item.id!, {
-                          portionsPaying: newPaying,
-                          totalPortions: newTotal
-                        });
-                      }}
-                      onPortionsPayingChange={(newPaying) => {
-                        updateSplitConfig(item.id!, {
-                          ...config,
-                          portionsPaying: newPaying
-                        });
-                      }}
-                    />
-                  </div>
+              return (
+                <div key={item.id} className={`split-config-card ${isExpanded ? 'expanded' : ''}`}>
+                  <button
+                    className="split-config-card-header"
+                    onClick={() => setExpandedItemId(isExpanded ? null : (item.id || null))}
+                  >
+                    <div className="split-config-card-info">
+                      {item.name && <div className="split-config-card-name">{item.name}</div>}
+                      <div className="split-config-card-status">
+                        <ExpandIndicator isExpanded={isExpanded} className="split-config-card-toggle" />
+                        {statusText}
+                      </div>
+                    </div>
+                    <div className="split-config-card-cost">{costStr}</div>
+                  </button>
+
+                  {isExpanded && (
+                    <div className="split-config-card-body">
+                      <div className="item-controls">
+                        <SplitControls
+                          totalPortions={config.totalPortions}
+                          portionsPaying={config.portionsPaying}
+                          maxSplit={Math.max(8, ...selectedItems.map(i => Math.abs(i.totalPortions ?? 1)))}
+                          onTotalPortionsChange={(newTotal) => {
+                            setFriendSplitConfig(prev => {
+                              const currentConfig = prev.get(item.id!) ?? {
+                                portionsPaying: item.portionsPaying ?? 1,
+                                totalPortions: item.totalPortions ?? 1
+                              };
+                              const newPaying = Math.min(currentConfig.portionsPaying, Math.abs(newTotal));
+                              const newConfig = new Map(prev);
+                              newConfig.set(item.id!, {
+                                portionsPaying: newPaying,
+                                totalPortions: newTotal
+                              });
+                              return newConfig;
+                            });
+                          }}
+                          onPortionsPayingChange={(newPaying) => {
+                            setFriendSplitConfig(prev => {
+                              const currentConfig = prev.get(item.id!) ?? {
+                                portionsPaying: item.portionsPaying ?? 1,
+                                totalPortions: item.totalPortions ?? 1
+                              };
+                              const newConfig = new Map(prev);
+                              newConfig.set(item.id!, {
+                                totalPortions: currentConfig.totalPortions,
+                                portionsPaying: newPaying
+                              });
+                              return newConfig;
+                            });
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })}
