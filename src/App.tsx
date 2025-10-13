@@ -74,7 +74,7 @@ function App() {
   const receiptUploadEnabled = betaFeaturesEnabled;
 
   // Calculate debt using utility function
-  const debt = calculateDebt(items, subtotal, total, tip, tipIsRate, tipIncludedInTotal);
+  const debt = calculateDebt({ items, subtotal, total, tip, tipIsRate, tipIncludedInTotal });
 
   const debtStr = Intl.NumberFormat('en-US', {style: 'currency', currency: 'USD'}).format(debt)
   const amountStr = debtStr.substring(1); // remove the dollar sign for Venmo

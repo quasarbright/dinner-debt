@@ -3,14 +3,18 @@
 
 import type { Item } from '../types';
 
-export function calculateDebt(
-  items: Partial<Item>[],
-  subtotal: number | undefined,
-  total: number | undefined,
-  tip: number,
-  tipIsRate: boolean,
-  tipIncludedInTotal: boolean
-): number {
+export interface DebtCalculationParams {
+  items: Partial<Item>[];
+  subtotal?: number;
+  total?: number;
+  tip: number;
+  tipIsRate: boolean;
+  tipIncludedInTotal: boolean;
+}
+
+export function calculateDebt(params: DebtCalculationParams): number {
+  const { items, subtotal, total, tip, tipIsRate, tipIncludedInTotal } = params;
+  
   const mySubtotal = calculateMySubtotal(items);
   const tax = (total ?? mySubtotal) - (subtotal ?? mySubtotal);
   const tipCost = calculateTipCost(tip, tipIsRate, tipIncludedInTotal, total, subtotal, mySubtotal);
