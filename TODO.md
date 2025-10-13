@@ -1,7 +1,13 @@
+- [ ] improve session creator ux
+  - [ ] don't even show how many you're paying for on a split
+  - [ ] wizard-based ux. qr/link sharing at the end
+  - [ ] think about better way to do splitting. for a large party with many apps split amongst everyone, applying a split to every app would be annoying. see bulk splitting todo item
+- [ ] homepage for session creator vs "just calculating" use-case. different user experiences.
+- [ ] move away from discord theme. figure something else out.
 - [ ] test duplicate item handling for receipt upload
 - [ ] proper backend so people don't have to paste their api key
 - [ ] bulk splitting for appetizers. Like if there were 3 appetizers split amongst the whole table, you shouldn't have to go one by one and split all of them
-- [ ] weird scrolling bug on chrome mobile
+- [ ] weird scrolling bug on chrome mobile. when you scroll to the bottom and let it go while it still has momentum going down, it jumps around and sends you to the top.
 - [ ] SEO. doesn't show up on google.
 - [ ] for main payer, calculate tip and new total for you so can just write that down on the check.
 - [x] after uploading a very big receipt, the screen goes blank. reproduce on laptop and debug. probably just too big for qr code.
