@@ -1,17 +1,10 @@
+// Processes receipt images using OpenRouter Vision API to extract items, totals, and tip information.
+// Uses AI vision models to parse receipt photos and return structured data.
+
 import { generateText } from 'ai';
 import { createOpenAI } from '@ai-sdk/openai';
 import imageCompression from 'browser-image-compression';
-
-export interface ReceiptData {
-  items: Array<{
-    name: string;
-    cost: number;
-  }>;
-  subtotal?: number;
-  total?: number;
-  tipIncludedInTotal: boolean;
-  tip?: number;
-}
+import type { ReceiptData } from './types';
 
 export async function processReceipt(
   file: File,

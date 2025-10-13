@@ -1,349 +1,91 @@
-import React, {useState, useEffect} from 'react';
+// Main application component for Dinner Debt bill splitting app.
+// Coordinates state management, business logic, and UI rendering for calculating
+// how much each person owes when splitting a restaurant bill.
+
+import React from 'react';
 import './App.css';
 import QRCode from 'react-qr-code';
-import { processReceipt, type ReceiptData } from './receiptProcessor';
-
-/*
-items you're paying for:
-cost: ___ proportion: ___ [remove item]
-...
-[add item]
-subtotal (for the whole bill): ___
-total (for the whole bill): ___
-tip: _.2 [ ] flat [x] rate
-discount: __0 [x] proportional [ ] custom proportion: ___
-[submit]
-You owe: $5.69
-*/
-
-interface Item {
-  name?: string
-  cost: number
-  // how many people you're paying for
-  portionsPaying: number
-  // how many people this was split with
-  totalPortions: number
-  id: string
-}
-
-interface FormState {
-  items: Partial<Item>[]
-  subtotal?: number
-  total?: number
-  tip: number
-  tipIsRate: boolean
-  tipIncludedInTotal: boolean
-  isPayingMe: boolean
-}
-
-function emptyItem(): Partial<Item> {
-  return {portionsPaying: 1, totalPortions: 1, id: crypto.randomUUID()}
-}
-
-function isMobileDevice(): boolean {
-  return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-}
-
-function getVenmoUrl(amount: string, note: string, recipient?: string): string {
-  const isMobile = isMobileDevice();
-  
-  if (isMobile) {
-    // Use venmo:// scheme for mobile (no @ symbol for recipient)
-    const baseUrl = 'venmo://paycharge?txn=pay';
-    const params = `amount=${amount}&note=${note}`;
-    return recipient 
-      ? `${baseUrl}&${params}&recipients=${recipient}`
-      : `${baseUrl}&${params}`;
-  } else {
-    // Use https:// for desktop (@ symbol required for recipient)
-    const baseUrl = 'https://venmo.com/?txn=pay';
-    const params = `amount=${amount}&note=${note}`;
-    return recipient 
-      ? `${baseUrl}&${params}&recipients=@${recipient}`
-      : `${baseUrl}&${params}`;
-  }
-}
-
-function encodeFormState(state: FormState): string {
-  try {
-    const json = JSON.stringify(state);
-    return btoa(json);
-  } catch (error) {
-    console.error('Failed to encode form state:', error);
-    return '';
-  }
-}
-
-function decodeFormState(encoded: string): FormState | null {
-  try {
-    const json = atob(encoded);
-    return JSON.parse(json);
-  } catch (error) {
-    console.error('Failed to decode form state:', error);
-    return null;
-  }
-}
+import { calculateDebt } from './utils/debtCalculation';
+import { getVenmoUrl } from './utils/venmoUrl';
+import { safeEval } from './utils/itemHelpers';
+import { useFormState } from './hooks/useFormState';
+import { useReceiptUpload } from './hooks/useReceiptUpload';
+import { useApiKeyManagement } from './hooks/useApiKeyManagement';
+import { useSettings } from './hooks/useSettings';
+import { useShareLink } from './hooks/useShareLink';
 
 function App() {
-  const [items, setItems] = useState<Partial<Item>[]>([emptyItem()])
-  const [subtotal, setSubtotal] = useState<number>()
-  const [total, setTotal] = useState<number>()
-  const [tip, setTip] = useState<number>(20)
-  const [tipIsRate, setTipIsRate] = useState<boolean>(true)
-  const [tipIncludedInTotal, setTipIncludedInTotal] = useState<boolean>(false)
-  // TODO discounts
-  // const [discount, setDiscount] = useState<number>()
-  // const [discountIsProportional, setDiscountIsProportional] = useState<boolean>(true)
-  // const [discountCustomProportion, setDiscountCustomProportion] = useState<number>()
-  const [isPayingMe, setIsPayingMe] = useState<boolean>(false)
-  const [showQRCode, setShowQRCode] = useState<boolean>(false)
-  const [isProcessingReceipt, setIsProcessingReceipt] = useState<boolean>(false)
-  const [receiptError, setReceiptError] = useState<string>()
-  const [showApiKeyModal, setShowApiKeyModal] = useState<boolean>(false)
-  const [apiKeyInput, setApiKeyInput] = useState<string>('')
-  const [linkCopied, setLinkCopied] = useState<boolean>(false)
-  const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false)
-  const [betaFeaturesEnabled, setBetaFeaturesEnabled] = useState<boolean>(
-    localStorage.getItem('beta_features_enabled') === 'true'
-  )
-  const [isEditingApiKey, setIsEditingApiKey] = useState<boolean>(false)
-  const [qrCodeError, setQrCodeError] = useState<boolean>(false)
-  
-  // Feature flag: Check if beta features are enabled (API key will be checked on upload)
-  const receiptUploadEnabled = betaFeaturesEnabled
+  // Initialize all state management hooks
+  const {
+    items,
+    subtotal,
+    setSubtotal,
+    total,
+    setTotal,
+    tip,
+    setTip,
+    tipIsRate,
+    setTipIsRate,
+    tipIncludedInTotal,
+    isPayingMe,
+    setIsPayingMe,
+    setItem,
+    removeItem,
+    addItem,
+    populateFormFromReceipt,
+    getFormState
+  } = useFormState();
 
-  // Load state from URL on mount
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const data = params.get('data');
-    
-    if (data) {
-      const decoded = decodeFormState(data);
-      if (decoded) {
-        // Populate all state from decoded data
-        setItems(decoded.items.map(item => ({
-          ...item,
-          id: item.id || crypto.randomUUID() // Ensure all items have IDs
-        })));
-        setSubtotal(decoded.subtotal);
-        setTotal(decoded.total);
-        setTip(decoded.tip);
-        setTipIsRate(decoded.tipIsRate);
-        setTipIncludedInTotal(decoded.tipIncludedInTotal);
-        setIsPayingMe(decoded.isPayingMe);
-      }
+  const {
+    showSettingsModal,
+    setShowSettingsModal,
+    betaFeaturesEnabled,
+    openSettings,
+    handleToggleBetaFeatures
+  } = useSettings();
+
+  const {
+    showApiKeyModal,
+    setShowApiKeyModal,
+    apiKeyInput,
+    setApiKeyInput,
+    isEditingApiKey,
+    setIsEditingApiKey,
+    handleSaveApiKey,
+    handleUpdateApiKey,
+    handleDeleteApiKey,
+    maskApiKey
+  } = useApiKeyManagement();
+
+  const {
+    isProcessingReceipt,
+    receiptError,
+    handleReceiptUploadClick,
+    handleReceiptUpload
+  } = useReceiptUpload({
+    onPopulateForm: populateFormFromReceipt,
+    onApiKeyMissing: () => {
+      setShowSettingsModal(true);
+      setIsEditingApiKey(true);
     }
-  }, []); // Run only once on mount
+  });
 
-  const debt = (() => {
-    let mySubtotal = 0
-    for (const {cost, portionsPaying, totalPortions} of items) {
-      const actualTotal = Math.max(1, Math.abs(totalPortions ?? 1))
-      const proportion = (portionsPaying ?? 1) / actualTotal
-      mySubtotal += (cost ?? 0) * proportion
-    }
-    const tax = (total ?? mySubtotal) - (subtotal ?? mySubtotal)
-    const tipCost = tipIsRate ? (total ?? subtotal ?? mySubtotal) * tip / 100 : tip
-    const fees = tax + tipCost
-    const myRatio = mySubtotal / (subtotal ?? mySubtotal)
-    if (!(subtotal || mySubtotal)) {
-      return 0
-    }
-    const myFees = fees * myRatio
-    // console.log({mySubtotal, subtotal, total, tax, tipCost, fees, myRatio})
-    return mySubtotal + myFees
-  })();
+  const {
+    showQRCode,
+    setShowQRCode,
+    linkCopied,
+    qrCodeError,
+    setQrCodeError,
+    getShareUrl,
+    handleCopyLink,
+    handleShareLink
+  } = useShareLink({ getFormState });
 
-  function setItem(index: number, item: Partial<Item>) {
-    setItems(items => {
-      const newItems = items.slice()
-      newItems[index] = {...items[index], ...item}
-      return newItems
-    })
-  }
+  // Feature flag: Check if beta features are enabled
+  const receiptUploadEnabled = betaFeaturesEnabled;
 
-  function removeItem(index: number) {
-    setItems(items => {
-      const newItems = items.slice()
-      newItems.splice(index, 1)
-      return newItems
-    })
-  }
-
-  function addItem() {
-    setItems(items => [...items, {portionsPaying: 1, totalPortions: 1, id: crypto.randomUUID()}])
-  }
-
-  function handleReceiptUploadClick() {
-    // Check for API key first
-    const apiKey = localStorage.getItem('openrouter_api_key')
-    if (!apiKey) {
-      // Open settings modal and show API key input
-      setShowSettingsModal(true)
-      setIsEditingApiKey(true)
-      return
-    }
-    
-    // If API key exists, trigger the file input
-    const fileInput = document.getElementById('receipt-upload') as HTMLInputElement
-    fileInput?.click()
-  }
-
-  async function handleReceiptUpload(event: React.ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0]
-    if (!file) return
-
-    const apiKey = localStorage.getItem('openrouter_api_key')
-    if (!apiKey) {
-      event.target.value = '' // Reset file input
-      return
-    }
-
-    setIsProcessingReceipt(true)
-    setReceiptError(undefined)
-
-    try {
-      console.log('Receipt selected:', file.name, file.type)
-      
-      // Process the receipt using the extracted module
-      const parsedData = await processReceipt(file, apiKey)
-      
-      // Populate the form
-      populateFormFromReceipt(parsedData)
-      
-    } catch (error) {
-      console.error('Error processing receipt:', error)
-      setReceiptError(error instanceof Error ? error.message : 'Failed to process receipt')
-    } finally {
-      setIsProcessingReceipt(false)
-      // Reset the input so the same file can be selected again
-      event.target.value = ''
-    }
-  }
-  
-  function populateFormFromReceipt(data: ReceiptData) {
-    // Replace items with parsed items
-    const newItems: Partial<Item>[] = data.items.map((item: ReceiptData['items'][number]) => ({
-      name: item.name,
-      cost: item.cost,
-      portionsPaying: 1,
-      totalPortions: 1,
-      id: crypto.randomUUID()
-    }))
-    
-    setItems(newItems)
-    
-    // Set subtotal and total
-    if (data.subtotal) {
-      setSubtotal(data.subtotal)
-    }
-    if (data.total) {
-      setTotal(data.total)
-    }
-    
-    // Handle tip
-    if (data.tipIncludedInTotal) {
-      setTip(0)
-      setTipIncludedInTotal(true)
-    } else if (data.tip) {
-      setTip(data.tip)
-      setTipIsRate(false)
-      setTipIncludedInTotal(false)
-    } else {
-      setTipIncludedInTotal(false)
-    }
-    
-    console.log('Form populated successfully')
-  }
-
-  function handleSaveApiKey() {
-    if (!apiKeyInput.trim()) {
-      return
-    }
-    localStorage.setItem('openrouter_api_key', apiKeyInput.trim())
-    setShowApiKeyModal(false)
-    setApiKeyInput('')
-  }
-
-  function handleToggleBetaFeatures(enabled: boolean) {
-    setBetaFeaturesEnabled(enabled)
-    localStorage.setItem('beta_features_enabled', enabled.toString())
-  }
-
-  function handleUpdateApiKey() {
-    if (!apiKeyInput.trim()) {
-      return
-    }
-    localStorage.setItem('openrouter_api_key', apiKeyInput.trim())
-    setApiKeyInput('')
-    setIsEditingApiKey(false)
-  }
-
-  function handleDeleteApiKey() {
-    if (window.confirm('Are you sure you want to delete your API key?')) {
-      localStorage.removeItem('openrouter_api_key')
-      setApiKeyInput('')
-      setIsEditingApiKey(false)
-      // Force a re-render by closing and reopening the modal
-      setShowSettingsModal(false)
-      setTimeout(() => setShowSettingsModal(true), 0)
-    }
-  }
-
-  function maskApiKey(key: string): string {
-    if (key.length <= 10) return key
-    return key.slice(0, 8) + '...' + key.slice(-6)
-  }
-
-  function openSettings() {
-    setShowSettingsModal(true)
-    setIsEditingApiKey(false)
-    setApiKeyInput('')
-  }
-
-  function getShareUrl(): string {
-    const formState: FormState = {
-      items,
-      subtotal,
-      total,
-      tip,
-      tipIsRate,
-      tipIncludedInTotal,
-      isPayingMe
-    };
-    const encoded = encodeFormState(formState);
-    return `${window.location.origin}${window.location.pathname}?data=${encoded}`;
-  }
-
-  async function handleCopyLink() {
-    const url = getShareUrl();
-    try {
-      await navigator.clipboard.writeText(url);
-      setLinkCopied(true);
-      setTimeout(() => setLinkCopied(false), 2000);
-    } catch (error) {
-      console.error('Failed to copy link:', error);
-    }
-  }
-
-  async function handleShareLink() {
-    const url = getShareUrl();
-    try {
-      if (navigator.share) {
-        await navigator.share({
-          title: 'Dinner Debt',
-          text: 'Split the bill with me',
-          url: url
-        });
-      } else {
-        // Fallback to copy if share not available
-        await handleCopyLink();
-      }
-    } catch (error) {
-      // User cancelled or share failed
-      console.error('Failed to share:', error);
-    }
-  }
+  // Calculate debt using utility function
+  const debt = calculateDebt(items, subtotal, total, tip, tipIsRate, tipIncludedInTotal);
 
   const debtStr = Intl.NumberFormat('en-US', {style: 'currency', currency: 'USD'}).format(debt)
   const amountStr = debtStr.substring(1); // remove the dollar sign for Venmo
@@ -878,6 +620,7 @@ function App() {
   );
 }
 
+// Error boundary component for QR code generation
 class QRCodeErrorBoundary extends React.Component<
   { children: React.ReactNode; onError: () => void },
   { hasError: boolean }
@@ -901,14 +644,6 @@ class QRCodeErrorBoundary extends React.Component<
       return null;
     }
     return this.props.children;
-  }
-}
-
-function safeEval(expr: string, defaultValue: any) {
-  try {
-    return eval(expr)
-  } catch (ignored) {
-    return defaultValue
   }
 }
 

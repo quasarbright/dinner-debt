@@ -1,4 +1,8 @@
-import { processReceipt, type ReceiptData } from './receiptProcessor';
+// Unit tests for receipt processing functionality.
+// Tests various receipt formats and edge cases like handwritten tips and included gratuity.
+
+import { processReceipt } from './receiptProcessor';
+import type { ReceiptData } from './types';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as dotenv from 'dotenv';
