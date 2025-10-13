@@ -10,7 +10,10 @@
 - [ ] weird scrolling bug on chrome mobile. when you scroll to the bottom and let it go while it still has momentum going down, it jumps around and sends you to the top.
 - [ ] SEO. doesn't show up on google.
 - [ ] for main payer, calculate tip and new total for you so can just write that down on the check.
+- [ ] have receipt scanner check its math
+- [ ] make venmo work on desktop. not sure what types of urls are supported
 - [x] after uploading a very big receipt, the screen goes blank. reproduce on laptop and debug. probably just too big for qr code.
 - [x] [improve friend ux](./planning/friend-ux-improvements.plan.md)
   - [x] instead of friends x-ing out what they didn't get, have them just check what they did get. Most stuff, they didn't get. Maybe a sequence of pages instead of just one.
   - Implemented 3-step wizard: (1) check items, (2) configure splits, (3) pay. Mobile-optimized and foolproof.
+- [x] selector options are white text on white on windows

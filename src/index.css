@@ -71,6 +71,17 @@ input, button {
   font-size: 1rem;
 }
 
+select {
+  color: var(--text-normal);
+  background-color: var(--background-secondary);
+  border: 1px solid var(--interactive-muted);
+}
+
+option {
+  color: var(--text-normal);
+  background-color: var(--background-secondary);
+}
+
 /* Mobile-first approach */
 @media (max-width: 576px) {
   html {
