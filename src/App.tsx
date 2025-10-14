@@ -96,7 +96,7 @@ function App() {
     const modeParam = params.get('mode');
     if (modeParam === 'creator' || modeParam === 'calculator') return modeParam;
     return 'landing';
-  }, []);
+  }, [window.location.search]);
 
   // Internal state for calculator manual entry mode (no URL change)
   const [showCalculatorManualEntry, setShowCalculatorManualEntry] = React.useState(false);
@@ -138,6 +138,7 @@ function App() {
           onManualEntryClick={() => setShowCalculatorManualEntry(true)}
           isProcessingReceipt={isProcessingReceipt}
           receiptError={receiptError ?? null}
+          onReceiptUpload={handleReceiptUpload}
         />
       ) : mode === 'friend' ? (
         <FriendWizard
@@ -437,7 +438,12 @@ function LandingPage() {
           className="landing-option-button"
           onClick={() => window.location.href = '?mode=creator'}
         >
-          <div className="option-icon">👥</div>
+          <svg className="option-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M9 11C11.2091 11 13 9.20914 13 7C13 4.79086 11.2091 3 9 3C6.79086 3 5 4.79086 5 7C5 9.20914 6.79086 11 9 11Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M23 21V19C22.9993 18.1137 22.7044 17.2528 22.1614 16.5523C21.6184 15.8519 20.8581 15.3516 20 15.13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M16 3.13C16.8604 3.35031 17.623 3.85071 18.1676 4.55232C18.7122 5.25392 19.0078 6.11683 19.0078 7.005C19.0078 7.89318 18.7122 8.75608 18.1676 9.45769C17.623 10.1593 16.8604 10.6597 16 10.88" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
           <div className="option-title">Split bill with friends</div>
           <div className="option-description">
             You're paying and want others to pay you back
@@ -448,7 +454,16 @@ function LandingPage() {
           className="landing-option-button"
           onClick={() => window.location.href = '?mode=calculator'}
         >
-          <div className="option-icon">🧮</div>
+          <svg className="option-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="4" y="2" width="16" height="20" rx="2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <rect x="8" y="6" width="8" height="4" rx="1" fill="currentColor"/>
+            <line x1="8" y1="14" x2="8" y2="14.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            <line x1="12" y1="14" x2="12" y2="14.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            <line x1="16" y1="14" x2="16" y2="14.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            <line x1="8" y1="18" x2="8" y2="18.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            <line x1="12" y1="18" x2="12" y2="18.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            <line x1="16" y1="18" x2="16" y2="18.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+          </svg>
           <div className="option-title">Calculate what I owe</div>
           <div className="option-description">
             Figure out your portion of the bill
@@ -466,6 +481,7 @@ interface CalculatorChoicePageProps {
   onManualEntryClick: () => void;
   isProcessingReceipt: boolean;
   receiptError: string | null;
+  onReceiptUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 function CalculatorChoicePage({
@@ -473,7 +489,8 @@ function CalculatorChoicePage({
   onReceiptUploadClick,
   onManualEntryClick,
   isProcessingReceipt,
-  receiptError
+  receiptError,
+  onReceiptUpload
 }: CalculatorChoicePageProps) {
   React.useEffect(() => {
     if (!receiptUploadEnabled) {
@@ -487,6 +504,14 @@ function CalculatorChoicePage({
 
   return (
     <div className="calculator-choice-container">
+      <input
+        type="file"
+        id="receipt-upload"
+        accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
+        onChange={onReceiptUpload}
+        style={{ display: 'none' }}
+        disabled={isProcessingReceipt}
+      />
       <h2>How would you like to enter the bill?</h2>
       <div className="calculator-options">
         <button 
@@ -494,7 +519,10 @@ function CalculatorChoicePage({
           onClick={onReceiptUploadClick}
           disabled={isProcessingReceipt}
         >
-          <div className="option-icon">📸</div>
+          <svg className="option-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M23 19C23 19.5304 22.7893 20.0391 22.4142 20.4142C22.0391 20.7893 21.5304 21 21 21H3C2.46957 21 1.96086 20.7893 1.58579 20.4142C1.21071 20.0391 1 19.5304 1 19V8C1 7.46957 1.21071 6.96086 1.58579 6.58579C1.96086 6.21071 2.46957 6 3 6H7L9 3H15L17 6H21C21.5304 6 22.0391 6.21071 22.4142 6.58579C22.7893 6.96086 23 7.46957 23 8V19Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <circle cx="12" cy="13" r="4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
           <div className="option-title">
             {isProcessingReceipt ? 'Processing...' : 'Upload Receipt'}
           </div>
@@ -507,7 +535,10 @@ function CalculatorChoicePage({
           className="calculator-option-button"
           onClick={onManualEntryClick}
         >
-          <div className="option-icon">✏️</div>
+          <svg className="option-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M17 3C17.5304 3 18.0391 3.21071 18.4142 3.58579L20.4142 5.58579C20.7893 5.96086 21 6.46957 21 7V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V4C3 3.46957 3.21071 2.96086 3.58579 2.58579C3.96086 2.21071 4.46957 2 5 2H16C16.2652 2 16.5196 2.10536 16.7071 2.29289L17 3Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M9 9H15M9 13H15M9 17H13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
           <div className="option-title">Manual Entry</div>
           <div className="option-description">
             Type in the details yourself

@@ -1041,7 +1041,7 @@
 
 .landing-container h2 {
   font-size: 1.75rem;
-  color: var(--text-primary);
+  color: var(--header-primary);
   margin-bottom: 2rem;
 }
 
@@ -1060,7 +1060,7 @@
 
 .landing-option-button {
   background: var(--background-secondary);
-  border: 2px solid var(--border-color);
+  border: 2px solid rgba(255, 255, 255, 0.06);
   border-radius: 12px;
   padding: 2rem 1.5rem;
   cursor: pointer;
@@ -1075,7 +1075,7 @@
 
 .landing-option-button:hover {
   transform: translateY(-2px);
-  border-color: var(--accent-color);
+  border-color: var(--brand);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
@@ -1084,19 +1084,20 @@
 }
 
 .option-icon {
-  font-size: 3rem;
-  line-height: 1;
+  width: 48px;
+  height: 48px;
+  color: var(--brand);
 }
 
 .option-title {
   font-size: 1.25rem;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--header-primary);
 }
 
 .option-description {
   font-size: 0.95rem;
-  color: var(--text-secondary);
+  color: var(--text-muted);
   line-height: 1.4;
 }
 
@@ -1110,7 +1111,7 @@
 
 .calculator-choice-container h2 {
   font-size: 1.75rem;
-  color: var(--text-primary);
+  color: var(--header-primary);
   margin-bottom: 2rem;
 }
 
@@ -1129,7 +1130,7 @@
 
 .calculator-option-button {
   background: var(--background-secondary);
-  border: 2px solid var(--border-color);
+  border: 2px solid rgba(255, 255, 255, 0.06);
   border-radius: 12px;
   padding: 2rem 1.5rem;
   cursor: pointer;
@@ -1144,7 +1145,7 @@
 
 .calculator-option-button:hover:not(:disabled) {
   transform: translateY(-2px);
-  border-color: var(--accent-color);
+  border-color: var(--brand);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 

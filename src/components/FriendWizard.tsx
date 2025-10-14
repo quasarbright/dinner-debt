@@ -60,6 +60,16 @@ export function FriendWizard(props: FriendWizardProps) {
   const [tipIsRate, setTipIsRate] = useState<boolean>(initialTipIsRate);
   const [items, setItems] = useState<Partial<Item>[]>(initialItems);
 
+  // Sync internal state with props when they change (e.g., when URL params change)
+  React.useEffect(() => {
+    setSubtotal(initialSubtotal);
+    setTotal(initialTotal);
+    setTip(initialTip);
+    setTipIsRate(initialTipIsRate);
+    setItems(initialItems);
+    setIsPayingMe(initialIsPayingMe);
+  }, [initialSubtotal, initialTotal, initialTip, initialTipIsRate, initialItems, initialIsPayingMe]);
+
   // Update item cost (calculator mode only)
   const updateItemCost = (itemId: string, newCost: number) => {
     if (!isCalculatorMode) return;
@@ -510,4 +520,3 @@ export function FriendWizard(props: FriendWizardProps) {
     </div>
   );
 }
-

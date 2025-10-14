@@ -16,6 +16,7 @@ export function encodeFormState(state: FormState): string {
 export function decodeFormState(encoded: string): FormState | null {
   try {
     const json = atob(encoded);
+    console.debug('Decoded form state JSON:', json);
     return JSON.parse(json);
   } catch (error) {
     console.error('Failed to decode form state:', error);
