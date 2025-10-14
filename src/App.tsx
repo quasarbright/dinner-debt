@@ -52,6 +52,9 @@ function App() {
   const { getApiKey, saveApiKey, deleteApiKey } = useApiKeyManagement();
 
   const [showApiKeyModal, setShowApiKeyModal] = React.useState(false);
+  
+  // Track when we need to redirect after receipt upload in calculator mode
+  const shouldRedirectAfterUpload = React.useRef(false);
 
   const {
     isProcessingReceipt,
@@ -63,12 +66,7 @@ function App() {
     onApiKeyMissing: () => setShowApiKeyModal(true),
     onUploadSuccess: () => {
       if (mode === 'calculator') {
-        setTimeout(() => {
-          const shareUrl = getShareUrl();
-          const url = new URL(shareUrl);
-          url.searchParams.set('calculator', 'true');
-          window.location.href = url.toString();
-        }, 100);
+        shouldRedirectAfterUpload.current = true;
       }
     }
   });
@@ -83,6 +81,17 @@ function App() {
     handleCopyLink,
     handleShareLink
   } = useShareLink({ getFormState });
+
+  // Redirect after form state has been populated (in calculator mode only)
+  React.useEffect(() => {
+    if (shouldRedirectAfterUpload.current && items.length > 0) {
+      shouldRedirectAfterUpload.current = false;
+      const shareUrl = getShareUrl();
+      const url = new URL(shareUrl);
+      url.searchParams.set('calculator', 'true');
+      window.location.href = url.toString();
+    }
+  }, [items, getShareUrl]);
 
   // Feature flag: Check if beta features are enabled
   const receiptUploadEnabled = betaFeaturesEnabled;
@@ -466,7 +475,7 @@ function LandingPage() {
           </svg>
           <div className="option-title">Calculate what I owe</div>
           <div className="option-description">
-            Figure out your portion of the bill
+            Someone else is paying and you want to figure out your portion of the bill
           </div>
         </button>
       </div>

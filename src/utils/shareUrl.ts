@@ -6,6 +6,7 @@ import type { FormState } from '../types';
 export function encodeFormState(state: FormState): string {
   try {
     const json = JSON.stringify(state);
+    console.debug('Encoding form state JSON:', json);
     return btoa(json);
   } catch (error) {
     console.error('Failed to encode form state:', error);
