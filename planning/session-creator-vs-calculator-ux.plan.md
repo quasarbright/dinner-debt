@@ -142,7 +142,7 @@ function CalculatorChoicePage({
   
   return (
     <div className="calculator-choice-container">
-      <h2>How would you like to enter the bill?</h2>
+      <h2>How would you like to enter the receipt info?</h2>
       <div className="calculator-options">
         <button 
           className="calculator-option-button"
