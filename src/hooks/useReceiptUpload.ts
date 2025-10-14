@@ -8,9 +8,10 @@ import type { ReceiptData } from '../types';
 interface UseReceiptUploadProps {
   onPopulateForm: (data: ReceiptData) => void;
   onApiKeyMissing: () => void;
+  onUploadSuccess?: () => void;
 }
 
-export function useReceiptUpload({ onPopulateForm, onApiKeyMissing }: UseReceiptUploadProps) {
+export function useReceiptUpload({ onPopulateForm, onApiKeyMissing, onUploadSuccess }: UseReceiptUploadProps) {
   const [isProcessingReceipt, setIsProcessingReceipt] = useState<boolean>(false);
   const [receiptError, setReceiptError] = useState<string>();
 
@@ -43,6 +44,7 @@ export function useReceiptUpload({ onPopulateForm, onApiKeyMissing }: UseReceipt
       
       const parsedData = await processReceipt(file, apiKey);
       onPopulateForm(parsedData);
+      onUploadSuccess?.();
       
     } catch (error) {
       console.error('Error processing receipt:', error);

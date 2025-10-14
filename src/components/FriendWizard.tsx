@@ -1,5 +1,6 @@
 // Friend-focused wizard component for bill splitting.
 // Provides a simplified 3-step flow: select items, configure splits, and pay.
+// In calculator mode, adds a 4th step for bill details confirmation.
 // Manages its own internal state separately from the main app state.
 
 import React, { useState, useMemo } from 'react';
@@ -8,6 +9,7 @@ import { calculateDebt } from '../utils/debtCalculation';
 import { getVenmoUrl } from '../utils/venmoUrl';
 import { SplitControls } from './SplitControls';
 import { ExpandIndicator } from './ExpandIndicator';
+import { BillDetails } from './BillDetails';
 
 interface FriendWizardProps {
   items: Partial<Item>[];
@@ -17,6 +19,7 @@ interface FriendWizardProps {
   tipIsRate: boolean;
   tipIncludedInTotal: boolean;
   isPayingMe: boolean;
+  isCalculatorMode?: boolean;
 }
 
 interface DebtBreakdown {
@@ -32,14 +35,40 @@ interface SplitConfig {
 }
 
 export function FriendWizard(props: FriendWizardProps) {
-  const { items, subtotal, total, tip, tipIsRate, tipIncludedInTotal, isPayingMe: initialIsPayingMe } = props;
+  const { 
+    items: initialItems,
+    subtotal: initialSubtotal,
+    total: initialTotal,
+    tip: initialTip,
+    tipIsRate: initialTipIsRate,
+    tipIncludedInTotal,
+    isPayingMe: initialIsPayingMe,
+    isCalculatorMode = false
+  } = props;
 
   // Wizard internal state
-  const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
+  const [currentStep, setCurrentStep] = useState<0 | 1 | 2 | 3>(isCalculatorMode ? 0 : 1);
   const [selectedItemIds, setSelectedItemIds] = useState<Set<string>>(new Set());
   const [friendSplitConfig, setFriendSplitConfig] = useState<Map<string, SplitConfig>>(new Map());
   const [isPayingMe, setIsPayingMe] = useState<boolean>(initialIsPayingMe);
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
+  
+  // Calculator mode: editable bill details and item costs
+  const [subtotal, setSubtotal] = useState<number | undefined>(initialSubtotal);
+  const [total, setTotal] = useState<number | undefined>(initialTotal);
+  const [tip, setTip] = useState<number>(initialTip);
+  const [tipIsRate, setTipIsRate] = useState<boolean>(initialTipIsRate);
+  const [items, setItems] = useState<Partial<Item>[]>(initialItems);
+
+  // Update item cost (calculator mode only)
+  const updateItemCost = (itemId: string, newCost: number) => {
+    if (!isCalculatorMode) return;
+    setItems(prevItems => 
+      prevItems.map(item => 
+        item.id === itemId ? { ...item, cost: newCost } : item
+      )
+    );
+  };
 
   // Get selected items with friend's split configuration
   const selectedItems = useMemo(() => {
@@ -126,18 +155,51 @@ export function FriendWizard(props: FriendWizardProps) {
   };
 
   // Navigation
-  const goToStep = (step: 1 | 2 | 3) => {
+  const goToStep = (step: 0 | 1 | 2 | 3) => {
     setCurrentStep(step);
   };
 
   const canProceedFromStep1 = selectedItemIds.size > 0;
+  const totalSteps = isCalculatorMode ? 4 : 3;
+  const displayStep = isCalculatorMode ? currentStep + 1 : currentStep;
 
   return (
     <div className="wizard-container">
       {/* Progress Indicator */}
       <div className="wizard-progress">
-        Step {currentStep} of 3
+        Step {displayStep} of {totalSteps}
       </div>
+
+      {/* Step 0: Bill Details Confirmation (Calculator Mode Only) */}
+      {isCalculatorMode && currentStep === 0 && (
+        <div className="wizard-step">
+          <h2 className="wizard-step-title">Confirm billing information</h2>
+          <p className="wizard-step-description">
+            Review and edit the bill details if needed
+          </p>
+          
+          <BillDetails
+            subtotal={subtotal ?? 0}
+            total={total ?? 0}
+            tip={tip}
+            tipIsRate={tipIsRate}
+            tipIncludedInTotal={tipIncludedInTotal}
+            onSubtotalChange={setSubtotal}
+            onTotalChange={setTotal}
+            onTipChange={setTip}
+            onTipIsRateChange={setTipIsRate}
+          />
+
+          <div className="wizard-nav">
+            <button
+              className="btn btn-primary btn-wizard-next"
+              onClick={() => goToStep(1)}
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Step 1: Select Items */}
       {currentStep === 1 && (
@@ -167,7 +229,26 @@ export function FriendWizard(props: FriendWizardProps) {
                   />
                   <span className="item-checkbox-label">
                     {item.name && <span className="item-checkbox-name">{item.name}</span>}
-                    <span className="item-checkbox-cost">{costStr}</span>
+                    {isCalculatorMode ? (
+                      <div className="currency-input-wrapper" style={{ display: 'inline-flex', alignItems: 'center' }}>
+                        <span className="currency-symbol">$</span>
+                        <input
+                          type="text"
+                          inputMode="decimal"
+                          className="form-control form-control-sm currency-input"
+                          value={itemCost || ''}
+                          onChange={(e) => {
+                            e.stopPropagation();
+                            updateItemCost(item.id!, Number.parseFloat(e.target.value) || 0);
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                          placeholder="0.00"
+                          style={{ width: '80px' }}
+                        />
+                      </div>
+                    ) : (
+                      <span className="item-checkbox-cost">{costStr}</span>
+                    )}
                   </span>
                 </label>
               );
@@ -179,6 +260,14 @@ export function FriendWizard(props: FriendWizardProps) {
           </div>
 
           <div className="wizard-nav">
+            {isCalculatorMode && (
+              <button
+                className="btn btn-outline btn-wizard-back"
+                onClick={() => goToStep(0)}
+              >
+                Back
+              </button>
+            )}
             <button
               className="btn btn-primary btn-wizard-next"
               onClick={() => goToStep(2)}

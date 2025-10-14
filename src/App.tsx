@@ -18,6 +18,7 @@ import { SettingsModal } from './components/SettingsModal';
 import { FriendWizard } from './components/FriendWizard';
 import { SplitControls } from './components/SplitControls';
 import { ExpandIndicator } from './components/ExpandIndicator';
+import { BillDetails } from './components/BillDetails';
 
 function App() {
   // Initialize all state management hooks
@@ -59,7 +60,17 @@ function App() {
     handleReceiptUpload
   } = useReceiptUpload({
     onPopulateForm: populateFormFromReceipt,
-    onApiKeyMissing: () => setShowApiKeyModal(true)
+    onApiKeyMissing: () => setShowApiKeyModal(true),
+    onUploadSuccess: () => {
+      if (mode === 'calculator') {
+        setTimeout(() => {
+          const shareUrl = getShareUrl();
+          const url = new URL(shareUrl);
+          url.searchParams.set('calculator', 'true');
+          window.location.href = url.toString();
+        }, 100);
+      }
+    }
   });
 
   const {
@@ -76,11 +87,19 @@ function App() {
   // Feature flag: Check if beta features are enabled
   const receiptUploadEnabled = betaFeaturesEnabled;
 
-  // Detect if user is a friend (came from shared link with ?data= parameter)
-  const isFriend = React.useMemo(() => {
+  // Detect mode from URL parameters
+  const mode = React.useMemo(() => {
     const params = new URLSearchParams(window.location.search);
-    return params.has('data');
+    if (params.has('data')) {
+      return params.get('calculator') === 'true' ? 'calculator-wizard' : 'friend';
+    }
+    const modeParam = params.get('mode');
+    if (modeParam === 'creator' || modeParam === 'calculator') return modeParam;
+    return 'landing';
   }, []);
+
+  // Internal state for calculator manual entry mode (no URL change)
+  const [showCalculatorManualEntry, setShowCalculatorManualEntry] = React.useState(false);
 
   // Calculate debt using utility function
   const debt = calculateDebt({ items, subtotal, total, tip, tipIsRate, tipIncludedInTotal });
@@ -109,8 +128,18 @@ function App() {
         </p>
       </header>
       
-      {/* Conditional rendering: show FriendWizard for friends, full form for session creators */}
-      {isFriend ? (
+      {/* Conditional rendering based on mode */}
+      {mode === 'landing' ? (
+        <LandingPage />
+      ) : mode === 'calculator' && !showCalculatorManualEntry ? (
+        <CalculatorChoicePage
+          receiptUploadEnabled={receiptUploadEnabled}
+          onReceiptUploadClick={handleReceiptUploadClick}
+          onManualEntryClick={() => setShowCalculatorManualEntry(true)}
+          isProcessingReceipt={isProcessingReceipt}
+          receiptError={receiptError ?? null}
+        />
+      ) : mode === 'friend' ? (
         <FriendWizard
           items={items}
           subtotal={subtotal}
@@ -119,6 +148,17 @@ function App() {
           tipIsRate={tipIsRate}
           tipIncludedInTotal={tipIncludedInTotal}
           isPayingMe={isPayingMe}
+        />
+      ) : mode === 'calculator-wizard' ? (
+        <FriendWizard
+          items={items}
+          subtotal={subtotal}
+          total={total}
+          tip={tip}
+          tipIsRate={tipIsRate}
+          tipIncludedInTotal={tipIncludedInTotal}
+          isPayingMe={isPayingMe}
+          isCalculatorMode={true}
         />
       ) : (
         <>
@@ -225,86 +265,17 @@ function App() {
       
       <section className="form-section">
         <h2 className="section-title">Bill Details</h2>
-        <div className="form-group">
-          <label className="form-label" htmlFor='sub'>Subtotal (Whole Bill)</label>
-          <div className="currency-input-wrapper">
-            <span className="currency-symbol">$</span>
-            <input 
-              className="form-control form-control-sm currency-input"
-              name='sub' 
-              type='text' 
-              inputMode="decimal"
-              value={subtotal ?? ''}
-              onChange={(ev) => setSubtotal(Number.parseFloat(ev.target.value))} 
-              placeholder="0.00"
-            />
-          </div>
-        </div>
-        
-        <div className="form-group">
-          <label className="form-label" htmlFor='total'>Total (Whole Bill)</label>
-          <div className="currency-input-wrapper">
-            <span className="currency-symbol">$</span>
-            <input 
-              className="form-control form-control-sm currency-input"
-              name='total' 
-              type='text' 
-              inputMode="decimal"
-              value={total ?? ''}
-              onChange={(ev) => setTotal(Number.parseFloat(ev.target.value))} 
-              placeholder="0.00"
-            />
-          </div>
-        </div>
-        
-        <div className="form-group">
-          <label className="form-label" htmlFor='tip'>
-            Tip{tipIncludedInTotal && ' *'}
-          </label>
-          <div style={{display: 'flex', alignItems: 'center'}}>
-            <div className={tipIsRate ? "percent-input-wrapper" : "currency-input-wrapper"} style={{marginRight: '0.5rem'}}>
-              {!tipIsRate && <span className="currency-symbol">$</span>}
-              <input 
-                className={`form-control form-control-sm ${tipIsRate ? 'percent-input' : 'currency-input'}`}
-                name='tip' 
-                type='number' 
-                inputMode="decimal"
-                value={tip} 
-                onChange={(ev) => setTip(Number.parseFloat(ev.target.value))} 
-              />
-              {tipIsRate && <span className="percent-symbol">%</span>}
-            </div>
-            
-            <div className="radio-group">
-              <label className="radio-label">
-                <input 
-                  className="radio-input"
-                  name="tipIsRate" 
-                  type="radio" 
-                  checked={tipIsRate} 
-                  onClick={() => setTipIsRate(true)}
-                />
-                percent
-              </label>
-              
-              <label className="radio-label">
-                <input 
-                  className="radio-input"
-                  name="tipisFlat" 
-                  type="radio" 
-                  checked={!tipIsRate} 
-                  onClick={() => setTipIsRate(false)}
-                />
-                flat amount
-              </label>
-            </div>
-          </div>
-          {tipIncludedInTotal && (
-            <div className="tip-included-notice">
-              * Gratuity is already included in the total
-            </div>
-          )}
-        </div>
+        <BillDetails
+          subtotal={subtotal ?? 0}
+          total={total ?? 0}
+          tip={tip}
+          tipIsRate={tipIsRate}
+          tipIncludedInTotal={tipIncludedInTotal}
+          onSubtotalChange={setSubtotal}
+          onTotalChange={setTotal}
+          onTipChange={setTip}
+          onTipIsRateChange={setTipIsRate}
+        />
       </section>
       
       <section className="result-section">
@@ -355,6 +326,8 @@ function App() {
         )}
       </section>
       
+      {/* Hide QR code section for calculator modes */}
+      {mode !== 'calculator' && !showCalculatorManualEntry && (
       <section className="form-section">
         <div 
           className="qr-toggle"
@@ -422,6 +395,7 @@ function App() {
           </div>
         )}
       </section>
+      )}
         </>
       )}
       
@@ -449,6 +423,100 @@ function App() {
         onSaveApiKey={saveApiKey}
         onDeleteApiKey={deleteApiKey}
       />
+    </div>
+  );
+}
+
+// Landing page component for choosing between creator and calculator modes
+function LandingPage() {
+  return (
+    <div className="landing-container">
+      <h2>What would you like to do?</h2>
+      <div className="landing-options">
+        <button 
+          className="landing-option-button"
+          onClick={() => window.location.href = '?mode=creator'}
+        >
+          <div className="option-icon">👥</div>
+          <div className="option-title">Split bill with friends</div>
+          <div className="option-description">
+            You're paying and want others to pay you back
+          </div>
+        </button>
+        
+        <button 
+          className="landing-option-button"
+          onClick={() => window.location.href = '?mode=calculator'}
+        >
+          <div className="option-icon">🧮</div>
+          <div className="option-title">Calculate what I owe</div>
+          <div className="option-description">
+            Figure out your portion of the bill
+          </div>
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// Calculator choice page for choosing between receipt upload and manual entry
+interface CalculatorChoicePageProps {
+  receiptUploadEnabled: boolean;
+  onReceiptUploadClick: () => void;
+  onManualEntryClick: () => void;
+  isProcessingReceipt: boolean;
+  receiptError: string | null;
+}
+
+function CalculatorChoicePage({
+  receiptUploadEnabled,
+  onReceiptUploadClick,
+  onManualEntryClick,
+  isProcessingReceipt,
+  receiptError
+}: CalculatorChoicePageProps) {
+  React.useEffect(() => {
+    if (!receiptUploadEnabled) {
+      onManualEntryClick();
+    }
+  }, [receiptUploadEnabled, onManualEntryClick]);
+
+  if (!receiptUploadEnabled) {
+    return null;
+  }
+
+  return (
+    <div className="calculator-choice-container">
+      <h2>How would you like to enter the bill?</h2>
+      <div className="calculator-options">
+        <button 
+          className="calculator-option-button"
+          onClick={onReceiptUploadClick}
+          disabled={isProcessingReceipt}
+        >
+          <div className="option-icon">📸</div>
+          <div className="option-title">
+            {isProcessingReceipt ? 'Processing...' : 'Upload Receipt'}
+          </div>
+          <div className="option-description">
+            Scan your receipt photo
+          </div>
+        </button>
+        
+        <button 
+          className="calculator-option-button"
+          onClick={onManualEntryClick}
+        >
+          <div className="option-icon">✏️</div>
+          <div className="option-title">Manual Entry</div>
+          <div className="option-description">
+            Type in the details yourself
+          </div>
+        </button>
+      </div>
+      {receiptError && (
+        <div className="error-message">{receiptError}</div>
+      )}
     </div>
   );
 }
