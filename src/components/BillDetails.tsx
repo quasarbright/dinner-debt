@@ -85,6 +85,7 @@ export function BillDetails({
                 name="tipIsRate" 
                 type="radio" 
                 checked={tipIsRate} 
+                onChange={() => {}}
                 onClick={() => onTipIsRateChange(true)}
               />
               percent
@@ -96,6 +97,7 @@ export function BillDetails({
                 name="tipisFlat" 
                 type="radio" 
                 checked={!tipIsRate} 
+                onChange={() => {}}
                 onClick={() => onTipIsRateChange(false)}
               />
               flat amount

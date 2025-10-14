@@ -4,7 +4,6 @@
 
 import React from 'react';
 import './App.css';
-import QRCode from 'react-qr-code';
 import { calculateDebt } from './utils/debtCalculation';
 import { getVenmoUrl } from './utils/venmoUrl';
 import { safeEval } from './utils/itemHelpers';
@@ -17,8 +16,10 @@ import { ApiKeyModal } from './components/ApiKeyModal';
 import { SettingsModal } from './components/SettingsModal';
 import { FriendWizard } from './components/FriendWizard';
 import { SplitControls } from './components/SplitControls';
-import { ExpandIndicator } from './components/ExpandIndicator';
 import { BillDetails } from './components/BillDetails';
+import { LandingPage } from './components/LandingPage';
+import { CalculatorChoicePage } from './components/CalculatorChoicePage';
+import { ShareSection } from './components/ShareSection';
 
 function App() {
   // Initialize all state management hooks
@@ -71,16 +72,8 @@ function App() {
     }
   });
 
-  const {
-    showQRCode,
-    setShowQRCode,
-    linkCopied,
-    qrCodeError,
-    setQrCodeError,
-    getShareUrl,
-    handleCopyLink,
-    handleShareLink
-  } = useShareLink({ getFormState });
+  // For calculator mode: get share URL using a temporary hook instance for redirect
+  const { getShareUrl } = useShareLink({ getFormState });
 
   // Redirect after form state has been populated (in calculator mode only)
   React.useEffect(() => {
@@ -301,6 +294,7 @@ function App() {
                 name="not-paying-me" 
                 type="radio" 
                 checked={!isPayingMe} 
+                onChange={() => {}}
                 onClick={() => setIsPayingMe(false)}
               />
               No
@@ -312,6 +306,7 @@ function App() {
                 name="paying-me" 
                 type="radio" 
                 checked={isPayingMe} 
+                onChange={() => {}}
                 onClick={() => setIsPayingMe(true)}
               />
               Yes
@@ -338,73 +333,7 @@ function App() {
       
       {/* Hide QR code section for calculator modes */}
       {mode !== 'calculator' && !showCalculatorManualEntry && (
-      <section className="form-section">
-        <div 
-          className="qr-toggle"
-          onClick={() => {
-            setQrCodeError(false);
-            setShowQRCode(b => !b);
-          }}
-        >
-          <ExpandIndicator isExpanded={showQRCode} />
-          {showQRCode ? 'Hide QR Code' : 'Show QR Code'}
-        </div>
-        
-        {showQRCode && (
-          <div className="qr-container">
-            {qrCodeError ? (
-              <div className="error-message" style={{ textAlign: 'center', padding: '2rem' }}>
-                <p style={{ marginBottom: '1rem' }}>
-                  ⚠️ Receipt is too large for QR code generation.
-                </p>
-                <p style={{ fontSize: '0.9em', opacity: 0.8 }}>
-                  Please use the Copy Link or Share Link button.
-                </p>
-              </div>
-            ) : (
-              <QRCodeErrorBoundary onError={() => setQrCodeError(true)}>
-                <QRCode 
-                  value={getShareUrl()}
-                  bgColor="var(--background-secondary)"
-                  fgColor="#dcddde"
-                  level="M"
-                  style={{ width: '100%', height: 'auto', maxWidth: '400px' }}
-                />
-              </QRCodeErrorBoundary>
-            )}
-            <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
-              <button 
-                className="btn btn-outline" 
-                onClick={handleCopyLink}
-                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-              >
-                <span>Copy Link</span>
-                {linkCopied ? (
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M13.5 4L6 11.5L2.5 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                ) : (
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="5" y="4" width="9" height="11" rx="1" stroke="currentColor" strokeWidth="1.5" fill="none"/>
-                    <path d="M4 12H3C2.44772 12 2 11.5523 2 11V2C2 1.44772 2.44772 1 3 1H9C9.55228 1 10 1.44772 10 2V3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                  </svg>
-                )}
-              </button>
-              <button 
-                className="btn btn-outline" 
-                onClick={handleShareLink}
-                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-              >
-                <span>Share Link</span>
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M3 7V14C3 14.5523 3.44772 15 4 15H12C12.5523 15 13 14.5523 13 14V7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M8 10V2M8 2L5.5 4.5M8 2L10.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </button>
-            </div>
-          </div>
-        )}
-      </section>
+        <ShareSection getFormState={getFormState} />
       )}
         </>
       )}
@@ -435,157 +364,6 @@ function App() {
       />
     </div>
   );
-}
-
-// Landing page component for choosing between creator and calculator modes
-function LandingPage() {
-  return (
-    <div className="landing-container">
-      <h2>What would you like to do?</h2>
-      <div className="landing-options">
-        <button 
-          className="landing-option-button"
-          onClick={() => window.location.href = '?mode=creator'}
-        >
-          <svg className="option-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M9 11C11.2091 11 13 9.20914 13 7C13 4.79086 11.2091 3 9 3C6.79086 3 5 4.79086 5 7C5 9.20914 6.79086 11 9 11Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M23 21V19C22.9993 18.1137 22.7044 17.2528 22.1614 16.5523C21.6184 15.8519 20.8581 15.3516 20 15.13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M16 3.13C16.8604 3.35031 17.623 3.85071 18.1676 4.55232C18.7122 5.25392 19.0078 6.11683 19.0078 7.005C19.0078 7.89318 18.7122 8.75608 18.1676 9.45769C17.623 10.1593 16.8604 10.6597 16 10.88" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-          <div className="option-title">Split bill with friends</div>
-          <div className="option-description">
-            You're paying and want others to pay you back
-          </div>
-        </button>
-        
-        <button 
-          className="landing-option-button"
-          onClick={() => window.location.href = '?mode=calculator'}
-        >
-          <svg className="option-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="4" y="2" width="16" height="20" rx="2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            <rect x="8" y="6" width="8" height="4" rx="1" fill="currentColor"/>
-            <line x1="8" y1="14" x2="8" y2="14.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-            <line x1="12" y1="14" x2="12" y2="14.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-            <line x1="16" y1="14" x2="16" y2="14.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-            <line x1="8" y1="18" x2="8" y2="18.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-            <line x1="12" y1="18" x2="12" y2="18.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-            <line x1="16" y1="18" x2="16" y2="18.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-          </svg>
-          <div className="option-title">Calculate what I owe</div>
-          <div className="option-description">
-            Someone else is paying and you want to figure out your portion of the bill
-          </div>
-        </button>
-      </div>
-    </div>
-  );
-}
-
-// Calculator choice page for choosing between receipt upload and manual entry
-interface CalculatorChoicePageProps {
-  receiptUploadEnabled: boolean;
-  onReceiptUploadClick: () => void;
-  onManualEntryClick: () => void;
-  isProcessingReceipt: boolean;
-  receiptError: string | null;
-  onReceiptUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
-}
-
-function CalculatorChoicePage({
-  receiptUploadEnabled,
-  onReceiptUploadClick,
-  onManualEntryClick,
-  isProcessingReceipt,
-  receiptError,
-  onReceiptUpload
-}: CalculatorChoicePageProps) {
-  React.useEffect(() => {
-    if (!receiptUploadEnabled) {
-      onManualEntryClick();
-    }
-  }, [receiptUploadEnabled, onManualEntryClick]);
-
-  if (!receiptUploadEnabled) {
-    return null;
-  }
-
-  return (
-    <div className="calculator-choice-container">
-      <input
-        type="file"
-        id="receipt-upload"
-        accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
-        onChange={onReceiptUpload}
-        style={{ display: 'none' }}
-        disabled={isProcessingReceipt}
-      />
-      <h2>How would you like to enter the receipt info?</h2>
-      <div className="calculator-options">
-        <button 
-          className="calculator-option-button"
-          onClick={onReceiptUploadClick}
-          disabled={isProcessingReceipt}
-        >
-          <svg className="option-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M23 19C23 19.5304 22.7893 20.0391 22.4142 20.4142C22.0391 20.7893 21.5304 21 21 21H3C2.46957 21 1.96086 20.7893 1.58579 20.4142C1.21071 20.0391 1 19.5304 1 19V8C1 7.46957 1.21071 6.96086 1.58579 6.58579C1.96086 6.21071 2.46957 6 3 6H7L9 3H15L17 6H21C21.5304 6 22.0391 6.21071 22.4142 6.58579C22.7893 6.96086 23 7.46957 23 8V19Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            <circle cx="12" cy="13" r="4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-          <div className="option-title">
-            {isProcessingReceipt ? 'Processing...' : 'Upload Receipt'}
-          </div>
-          <div className="option-description">
-            Scan your receipt photo
-          </div>
-        </button>
-        
-        <button 
-          className="calculator-option-button"
-          onClick={onManualEntryClick}
-        >
-          <svg className="option-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M17 3C17.5304 3 18.0391 3.21071 18.4142 3.58579L20.4142 5.58579C20.7893 5.96086 21 6.46957 21 7V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V4C3 3.46957 3.21071 2.96086 3.58579 2.58579C3.96086 2.21071 4.46957 2 5 2H16C16.2652 2 16.5196 2.10536 16.7071 2.29289L17 3Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M9 9H15M9 13H15M9 17H13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-          <div className="option-title">Manual Entry</div>
-          <div className="option-description">
-            Type in the details yourself
-          </div>
-        </button>
-      </div>
-      {receiptError && (
-        <div className="error-message">{receiptError}</div>
-      )}
-    </div>
-  );
-}
-
-// Error boundary component for QR code generation
-class QRCodeErrorBoundary extends React.Component<
-  { children: React.ReactNode; onError: () => void },
-  { hasError: boolean }
-> {
-  constructor(props: any) {
-    super(props);
-    this.state = { hasError: false };
-  }
-
-  static getDerivedStateFromError() {
-    return { hasError: true };
-  }
-
-  componentDidCatch(error: Error) {
-    console.error('QR Code generation failed:', error);
-    this.props.onError();
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return null;
-    }
-    return this.props.children;
-  }
 }
 
 export default App;
