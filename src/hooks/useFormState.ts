@@ -10,7 +10,7 @@ export function useFormState() {
   const [items, setItems] = useState<Partial<Item>[]>([emptyItem()]);
   const [subtotal, setSubtotal] = useState<number>();
   const [total, setTotal] = useState<number>();
-  const [tip, setTip] = useState<number>(20);
+  const [tip, setTip] = useState<number | undefined>(20);
   const [tipIsRate, setTipIsRate] = useState<boolean>(true);
   const [tipIncludedInTotal, setTipIncludedInTotal] = useState<boolean>(false);
   const [isPayingMe, setIsPayingMe] = useState<boolean>(false);

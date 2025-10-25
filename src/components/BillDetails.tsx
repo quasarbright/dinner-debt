@@ -6,12 +6,12 @@ import React from 'react';
 interface BillDetailsProps {
   subtotal: number | undefined;
   total: number | undefined;
-  tip: number;
+  tip: number | undefined;
   tipIsRate: boolean;
   tipIncludedInTotal: boolean;
   onSubtotalChange: (value: number | undefined) => void;
   onTotalChange: (value: number | undefined) => void;
-  onTipChange: (value: number) => void;
+  onTipChange: (value: number | undefined) => void;
   onTipIsRateChange: (value: boolean) => void;
 }
 
@@ -78,13 +78,13 @@ export function BillDetails({
             <input 
               className={`form-control form-control-sm ${tipIsRate ? 'percent-input' : 'currency-input'}`}
               name='tip' 
-              type='number' 
+              type='text' 
               inputMode="decimal"
               value={tip ?? ''} 
               onChange={(ev) => {
                 const value = ev.target.value.trim();
                 const parsed = Number.parseFloat(value);
-                onTipChange(value === '' || isNaN(parsed) ? 0 : parsed);
+                onTipChange(value === '' || isNaN(parsed) ? undefined : parsed);
               }} 
             />
             {tipIsRate && <span className="percent-symbol">%</span>}

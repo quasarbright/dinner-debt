@@ -15,7 +15,7 @@ interface FriendWizardProps {
   items: Partial<Item>[];
   subtotal?: number;
   total?: number;
-  tip: number;
+  tip: number | undefined;
   tipIsRate: boolean;
   tipIncludedInTotal: boolean;
   isPayingMe: boolean;
@@ -56,7 +56,7 @@ export function FriendWizard(props: FriendWizardProps) {
   // Calculator mode: editable bill details and item costs
   const [subtotal, setSubtotal] = useState<number | undefined>(initialSubtotal);
   const [total, setTotal] = useState<number | undefined>(initialTotal);
-  const [tip, setTip] = useState<number>(initialTip);
+  const [tip, setTip] = useState<number | undefined>(initialTip);
   const [tipIsRate, setTipIsRate] = useState<boolean>(initialTipIsRate);
   const [items, setItems] = useState<Partial<Item>[]>(initialItems);
 
@@ -125,7 +125,7 @@ export function FriendWizard(props: FriendWizardProps) {
 
     // Calculate my share of tip
     let myTip = 0;
-    if (!tipIncludedInTotal) {
+    if (!tipIncludedInTotal && tip) {
       if (tipIsRate) {
         myTip = billTotal * tip / 100 * myRatio;
       } else {

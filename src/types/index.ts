@@ -15,7 +15,7 @@ export interface FormState {
   items: Partial<Item>[]
   subtotal?: number
   total?: number
-  tip: number
+  tip: number | undefined
   tipIsRate: boolean
   tipIncludedInTotal: boolean
   isPayingMe: boolean

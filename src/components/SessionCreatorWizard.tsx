@@ -30,9 +30,18 @@ export function SessionCreatorWizard({
   const [items, setItems] = useState<Partial<Item>[]>(initialItems);
   const [subtotal, setSubtotal] = useState<number | undefined>(initialSubtotal);
   const [total, setTotal] = useState<number | undefined>(initialTotal);
-  const [tip, setTip] = useState<number>(initialTip);
+  const [tip, setTip] = useState<number | undefined>(initialTip);
   const [tipIsRate, setTipIsRate] = useState<boolean>(initialTipIsRate);
   const [tipIncludedInTotal] = useState<boolean>(initialTipIncludedInTotal);
+
+  // Sync internal state with props when they change (e.g., after receipt upload)
+  React.useEffect(() => {
+    setItems(initialItems);
+    setSubtotal(initialSubtotal);
+    setTotal(initialTotal);
+    setTip(initialTip);
+    setTipIsRate(initialTipIsRate);
+  }, [initialItems, initialSubtotal, initialTotal, initialTip, initialTipIsRate]);
 
   const setItem = (index: number, updates: Partial<Item>) => {
     setItems(prevItems => {

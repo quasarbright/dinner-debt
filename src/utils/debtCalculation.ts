@@ -7,7 +7,7 @@ export interface DebtCalculationParams {
   items: Partial<Item>[];
   subtotal?: number;
   total?: number;
-  tip: number;
+  tip: number | undefined;
   tipIsRate: boolean;
   tipIncludedInTotal: boolean;
 }
@@ -40,14 +40,14 @@ function calculateMySubtotal(items: Partial<Item>[]): number {
 }
 
 function calculateTipCost(
-  tip: number,
+  tip: number | undefined,
   tipIsRate: boolean,
   tipIncludedInTotal: boolean,
   total: number | undefined,
   subtotal: number | undefined,
   mySubtotal: number
 ): number {
-  if (tipIncludedInTotal) {
+  if (tipIncludedInTotal || !tip) {
     return 0;
   }
   return tipIsRate ? (total ?? subtotal ?? mySubtotal) * tip / 100 : tip;

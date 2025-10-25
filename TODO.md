@@ -12,6 +12,7 @@
 - [ ] for main payer, calculate tip and new total for you so can just write that down on the check.
 - [ ] have receipt scanner check its math
 - [ ] make venmo work on desktop. not sure what types of urls are supported
+- [ ] extract shared receipt upload/button logic into something reusable
 - [x] after uploading a very big receipt, the screen goes blank. reproduce on laptop and debug. probably just too big for qr code.
 - [x] [improve friend ux](./planning/friend-ux-improvements.plan.md)
   - [x] instead of friends x-ing out what they didn't get, have them just check what they did get. Most stuff, they didn't get. Maybe a sequence of pages instead of just one.

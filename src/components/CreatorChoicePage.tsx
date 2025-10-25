@@ -37,7 +37,7 @@ export function CreatorChoicePage({
     <div className="calculator-choice-container">
       <input
         type="file"
-        id="creator-receipt-upload"
+        id="receipt-upload"
         accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
         onChange={onReceiptUpload}
         style={{ display: 'none' }}
