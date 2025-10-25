@@ -24,6 +24,12 @@ export function SettingsModal({
 }: SettingsModalProps) {
   const [isEditingApiKey, setIsEditingApiKey] = React.useState(false);
   const [apiKeyInput, setApiKeyInput] = React.useState('');
+  
+  const [savedVenmoUsername, setSavedVenmoUsername] = React.useState<string>(() => {
+    return localStorage.getItem('venmo_username') || '';
+  });
+  const [isEditingVenmo, setIsEditingVenmo] = React.useState(false);
+  const [venmoInput, setVenmoInput] = React.useState('');
 
   if (!show) return null;
 
@@ -31,6 +37,8 @@ export function SettingsModal({
     onClose();
     setIsEditingApiKey(false);
     setApiKeyInput('');
+    setIsEditingVenmo(false);
+    setVenmoInput('');
   };
 
   const handleSaveApiKey = () => {
@@ -49,6 +57,26 @@ export function SettingsModal({
   const maskApiKey = (key: string): string => {
     if (key.length <= 10) return key;
     return key.slice(0, 8) + '...' + key.slice(-6);
+  };
+
+  const handleSaveVenmo = () => {
+    const trimmed = venmoInput.trim();
+    if (trimmed) {
+      localStorage.setItem('venmo_username', trimmed);
+      setSavedVenmoUsername(trimmed);
+    }
+    setVenmoInput('');
+    setIsEditingVenmo(false);
+  };
+
+  const handleDeleteVenmo = () => {
+    localStorage.removeItem('venmo_username');
+    setSavedVenmoUsername('');
+  };
+
+  const handleCancelVenmoEdit = () => {
+    setIsEditingVenmo(false);
+    setVenmoInput('');
   };
 
   return (
@@ -74,6 +102,72 @@ export function SettingsModal({
             <span className="toggle-switch"></span>
             <span className="toggle-text">Enable Beta Features</span>
           </label>
+        </div>
+
+        <div className="settings-section">
+          <div className="settings-section-header">
+            <h3 className="settings-section-title">Venmo Username</h3>
+          </div>
+          <p className="settings-description">
+            Save your Venmo username to automatically prefill it when creating new sessions
+          </p>
+
+          {isEditingVenmo || !savedVenmoUsername ? (
+            <>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ color: 'var(--text-muted)' }}>@</span>
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="username"
+                  value={venmoInput}
+                  onChange={(e) => setVenmoInput(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSaveVenmo()}
+                  style={{ flex: 1 }}
+                />
+              </div>
+              <div className="settings-actions">
+                {savedVenmoUsername && (
+                  <button 
+                    className="btn btn-outline" 
+                    onClick={handleCancelVenmoEdit}
+                  >
+                    Cancel
+                  </button>
+                )}
+                <button 
+                  className="btn btn-primary" 
+                  onClick={handleSaveVenmo}
+                  disabled={!venmoInput.trim()}
+                >
+                  {savedVenmoUsername ? 'Update Username' : 'Save Username'}
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="api-key-display">
+                <code>@{savedVenmoUsername}</code>
+              </div>
+              <div className="settings-actions">
+                <button 
+                  className="btn btn-outline" 
+                  onClick={() => {
+                    setVenmoInput(savedVenmoUsername);
+                    setIsEditingVenmo(true);
+                  }}
+                >
+                  Update Username
+                </button>
+                <button 
+                  className="btn btn-danger" 
+                  onClick={handleDeleteVenmo}
+                >
+                  Delete Username
+                </button>
+              </div>
+            </>
+          )}
         </div>
 
         {betaFeaturesEnabled && (

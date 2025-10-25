@@ -35,7 +35,14 @@ export function SessionCreatorWizard({
   const [tip, setTip] = useState<number | undefined>(initialTip);
   const [tipIsRate, setTipIsRate] = useState<boolean>(initialTipIsRate);
   const [tipIncludedInTotal] = useState<boolean>(initialTipIncludedInTotal);
-  const [venmoUsername, setVenmoUsername] = useState<string>(initialVenmoUsername ?? '');
+  const [venmoUsername, setVenmoUsername] = useState<string>(() => {
+    // Load from initialVenmoUsername first, otherwise try localStorage
+    if (initialVenmoUsername) return initialVenmoUsername;
+    return localStorage.getItem('venmo_username') || '';
+  });
+  const [rememberUsername, setRememberUsername] = useState<boolean>(() => {
+    return !!localStorage.getItem('venmo_username');
+  });
   const [editingCostIndex, setEditingCostIndex] = useState<number | null>(null);
   const [editingCostValue, setEditingCostValue] = useState<string>('');
 
@@ -46,7 +53,10 @@ export function SessionCreatorWizard({
     setTotal(initialTotal);
     setTip(initialTip);
     setTipIsRate(initialTipIsRate);
-    setVenmoUsername(initialVenmoUsername ?? '');
+    // Only update venmoUsername if explicitly provided via props
+    if (initialVenmoUsername !== undefined) {
+      setVenmoUsername(initialVenmoUsername);
+    }
   }, [initialItems, initialSubtotal, initialTotal, initialTip, initialTipIsRate, initialVenmoUsername]);
 
   const setItem = (index: number, updates: Partial<Item>) => {
@@ -70,6 +80,14 @@ export function SessionCreatorWizard({
   };
 
   const goToStep = (step: 1 | 2 | 3 | 4) => {
+    // When leaving step 3, save username to localStorage if checkbox is checked
+    if (currentStep === 3 && step !== 3) {
+      if (rememberUsername && venmoUsername) {
+        localStorage.setItem('venmo_username', venmoUsername);
+      } else if (!rememberUsername) {
+        localStorage.removeItem('venmo_username');
+      }
+    }
     setCurrentStep(step);
   };
 
@@ -238,6 +256,17 @@ export function SessionCreatorWizard({
                 placeholder="username"
                 style={{ flex: 1 }}
               />
+            </div>
+            <div style={{ marginTop: '0.75rem' }}>
+              <label className="radio-label" style={{ cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={rememberUsername}
+                  onChange={(ev) => setRememberUsername(ev.target.checked)}
+                  style={{ marginRight: '0.5rem' }}
+                />
+                Remember my username
+              </label>
             </div>
             <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
               Leave blank if you prefer friends to select the recipient themselves
