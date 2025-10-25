@@ -59,6 +59,8 @@ export function FriendWizard(props: FriendWizardProps) {
   const [tip, setTip] = useState<number | undefined>(initialTip);
   const [tipIsRate, setTipIsRate] = useState<boolean>(initialTipIsRate);
   const [items, setItems] = useState<Partial<Item>[]>(initialItems);
+  const [editingCostItemId, setEditingCostItemId] = useState<string | null>(null);
+  const [editingCostValue, setEditingCostValue] = useState<string>('');
 
   // Sync internal state with props when they change (e.g., when URL params change)
   React.useEffect(() => {
@@ -246,12 +248,21 @@ export function FriendWizard(props: FriendWizardProps) {
                           type="text"
                           inputMode="decimal"
                           className="form-control form-control-sm currency-input"
-                          value={itemCost || ''}
+                          value={editingCostItemId === item.id ? editingCostValue : (itemCost || '')}
                           onChange={(e) => {
                             e.stopPropagation();
-                            const value = e.target.value.trim();
-                            const parsed = Number.parseFloat(value);
-                            updateItemCost(item.id!, value === '' || isNaN(parsed) ? 0 : parsed);
+                            setEditingCostValue(e.target.value);
+                          }}
+                          onFocus={(e) => {
+                            e.stopPropagation();
+                            setEditingCostItemId(item.id!);
+                            setEditingCostValue(itemCost?.toString() ?? '');
+                          }}
+                          onBlur={() => {
+                            const parsed = Number.parseFloat(editingCostValue);
+                            updateItemCost(item.id!, editingCostValue === '' || isNaN(parsed) ? 0 : parsed);
+                            setEditingCostItemId(null);
+                            setEditingCostValue('');
                           }}
                           onClick={(e) => e.stopPropagation()}
                           placeholder="0.00"

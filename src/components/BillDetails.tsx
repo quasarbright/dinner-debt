@@ -26,6 +26,10 @@ export function BillDetails({
   onTipChange,
   onTipIsRateChange
 }: BillDetailsProps) {
+  const [subtotalStr, setSubtotalStr] = React.useState<string>('');
+  const [totalStr, setTotalStr] = React.useState<string>('');
+  const [tipStr, setTipStr] = React.useState<string>('');
+
   return (
     <>
       <div className="form-group">
@@ -37,12 +41,16 @@ export function BillDetails({
             name='sub' 
             type='text' 
             inputMode="decimal"
-            value={subtotal ?? ''}
+            value={subtotalStr || (subtotal ?? '')}
             onChange={(ev) => {
-              const value = ev.target.value.trim();
-              const parsed = Number.parseFloat(value);
-              onSubtotalChange(value === '' || isNaN(parsed) ? undefined : parsed);
-            }} 
+              setSubtotalStr(ev.target.value);
+            }}
+            onBlur={() => {
+              const parsed = Number.parseFloat(subtotalStr);
+              onSubtotalChange(subtotalStr === '' || isNaN(parsed) ? undefined : parsed);
+              setSubtotalStr('');
+            }}
+            onFocus={() => setSubtotalStr(subtotal?.toString() ?? '')}
             placeholder="0.00"
           />
         </div>
@@ -57,12 +65,16 @@ export function BillDetails({
             name='total' 
             type='text' 
             inputMode="decimal"
-            value={total ?? ''}
+            value={totalStr || (total ?? '')}
             onChange={(ev) => {
-              const value = ev.target.value.trim();
-              const parsed = Number.parseFloat(value);
-              onTotalChange(value === '' || isNaN(parsed) ? undefined : parsed);
-            }} 
+              setTotalStr(ev.target.value);
+            }}
+            onBlur={() => {
+              const parsed = Number.parseFloat(totalStr);
+              onTotalChange(totalStr === '' || isNaN(parsed) ? undefined : parsed);
+              setTotalStr('');
+            }}
+            onFocus={() => setTotalStr(total?.toString() ?? '')}
             placeholder="0.00"
           />
         </div>
@@ -80,12 +92,16 @@ export function BillDetails({
               name='tip' 
               type='text' 
               inputMode="decimal"
-              value={tip ?? ''} 
+              value={tipStr || (tip ?? '')}
               onChange={(ev) => {
-                const value = ev.target.value.trim();
-                const parsed = Number.parseFloat(value);
-                onTipChange(value === '' || isNaN(parsed) ? undefined : parsed);
-              }} 
+                setTipStr(ev.target.value);
+              }}
+              onBlur={() => {
+                const parsed = Number.parseFloat(tipStr);
+                onTipChange(tipStr === '' || isNaN(parsed) ? undefined : parsed);
+                setTipStr('');
+              }}
+              onFocus={() => setTipStr(tip?.toString() ?? '')}
             />
             {tipIsRate && <span className="percent-symbol">%</span>}
           </div>

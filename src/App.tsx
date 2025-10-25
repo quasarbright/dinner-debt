@@ -45,6 +45,10 @@ function App() {
     getFormState
   } = useFormState();
 
+  // Local state for editing item costs (to preserve decimal point during typing)
+  const [editingCostIndex, setEditingCostIndex] = React.useState<number | null>(null);
+  const [editingCostValue, setEditingCostValue] = React.useState<string>('');
+
   const {
     showSettingsModal,
     setShowSettingsModal,
@@ -252,8 +256,19 @@ function App() {
                         name={`cost${index}`}
                         type="text"
                         inputMode="decimal"
-                        value={item.cost ?? ''}
-                        onChange={(ev) => setItem(index, {cost: safeEval(ev.target.value, 1)})}
+                        value={editingCostIndex === index ? editingCostValue : (item.cost ?? '')}
+                        onChange={(ev) => {
+                          setEditingCostValue(ev.target.value);
+                        }}
+                        onFocus={() => {
+                          setEditingCostIndex(index);
+                          setEditingCostValue(item.cost?.toString() ?? '');
+                        }}
+                        onBlur={() => {
+                          setItem(index, {cost: safeEval(editingCostValue, 1)});
+                          setEditingCostIndex(null);
+                          setEditingCostValue('');
+                        }}
                         placeholder="0.00"
                       />
                     </div>

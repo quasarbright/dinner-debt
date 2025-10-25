@@ -33,6 +33,8 @@ export function SessionCreatorWizard({
   const [tip, setTip] = useState<number | undefined>(initialTip);
   const [tipIsRate, setTipIsRate] = useState<boolean>(initialTipIsRate);
   const [tipIncludedInTotal] = useState<boolean>(initialTipIncludedInTotal);
+  const [editingCostIndex, setEditingCostIndex] = useState<number | null>(null);
+  const [editingCostValue, setEditingCostValue] = useState<string>('');
 
   // Sync internal state with props when they change (e.g., after receipt upload)
   React.useEffect(() => {
@@ -125,13 +127,21 @@ export function SessionCreatorWizard({
                         name={`cost${index}`}
                         type="text"
                         inputMode="decimal"
-                        value={item.cost ?? ''}
+                        value={editingCostIndex === index ? editingCostValue : (item.cost ?? '')}
                         onChange={(ev) => {
-                          const value = ev.target.value.trim();
-                          const parsed = Number.parseFloat(value);
-                          setItem(index, { 
-                            cost: value === '' || isNaN(parsed) ? undefined : parsed 
+                          setEditingCostValue(ev.target.value);
+                        }}
+                        onFocus={() => {
+                          setEditingCostIndex(index);
+                          setEditingCostValue(item.cost?.toString() ?? '');
+                        }}
+                        onBlur={() => {
+                          const parsed = Number.parseFloat(editingCostValue);
+                          setItem(index, {
+                            cost: editingCostValue === '' || isNaN(parsed) ? undefined : parsed
                           });
+                          setEditingCostIndex(null);
+                          setEditingCostValue('');
                         }}
                         placeholder="0.00"
                       />
