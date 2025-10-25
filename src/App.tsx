@@ -184,6 +184,7 @@ function App() {
           initialTip={tip}
           initialTipIsRate={tipIsRate}
           initialTipIncludedInTotal={tipIncludedInTotal}
+          initialVenmoUsername={getFormState().venmoUsername}
         />
       ) : mode === 'calculator' && !showCalculatorManualEntry ? (
         <CalculatorChoicePage
@@ -203,6 +204,7 @@ function App() {
           tipIsRate={tipIsRate}
           tipIncludedInTotal={tipIncludedInTotal}
           isPayingMe={isPayingMe}
+          venmoUsername={getFormState().venmoUsername}
         />
       ) : mode === 'calculator-wizard' ? (
         <FriendWizard
@@ -214,6 +216,7 @@ function App() {
           tipIncludedInTotal={tipIncludedInTotal}
           isPayingMe={isPayingMe}
           isCalculatorMode={true}
+          venmoUsername={getFormState().venmoUsername}
         />
       ) : (
         <>

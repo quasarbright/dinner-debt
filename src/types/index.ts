@@ -19,6 +19,7 @@ export interface FormState {
   tipIsRate: boolean
   tipIncludedInTotal: boolean
   isPayingMe: boolean
+  venmoUsername?: string
 }
 
 export interface ReceiptData {

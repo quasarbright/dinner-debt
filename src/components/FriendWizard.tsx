@@ -20,6 +20,7 @@ interface FriendWizardProps {
   tipIncludedInTotal: boolean;
   isPayingMe: boolean;
   isCalculatorMode?: boolean;
+  venmoUsername?: string;
 }
 
 interface DebtBreakdown {
@@ -43,7 +44,8 @@ export function FriendWizard(props: FriendWizardProps) {
     tipIsRate: initialTipIsRate,
     tipIncludedInTotal,
     isPayingMe: initialIsPayingMe,
-    isCalculatorMode = false
+    isCalculatorMode = false,
+    venmoUsername: initialVenmoUsername
   } = props;
 
   // Wizard internal state
@@ -146,6 +148,9 @@ export function FriendWizard(props: FriendWizardProps) {
   const debtStr = Intl.NumberFormat('en-US', {style: 'currency', currency: 'USD'}).format(debt);
   const amountStr = debtStr.substring(1);
   const note = encodeURIComponent("dinner-debt");
+  
+  // Use venmoUsername from props if provided (from share URL), otherwise use isPayingMe logic
+  const hasVenmoUsername = !!initialVenmoUsername;
 
   // Step 1: Item Selection
   const toggleItemSelection = (itemId: string) => {
@@ -480,43 +485,51 @@ export function FriendWizard(props: FriendWizardProps) {
             <div className="payment-amount-value">{debtStr}</div>
           </div>
 
-          {/* Payment recipient selection */}
-          <div className="payment-recipient-selector">
-            <p className="payment-recipient-question">Are you paying Mike Delmonaco?</p>
-            <div className="radio-group">
-              <label className="radio-label">
-                <input 
-                  className="radio-input"
-                  name="paying-me" 
-                  type="radio" 
-                  checked={isPayingMe} 
-                  onChange={() => setIsPayingMe(true)}
-                />
-                Yes
-              </label>
-              
-              <label className="radio-label">
-                <input 
-                  className="radio-input"
-                  name="not-paying-me" 
-                  type="radio" 
-                  checked={!isPayingMe} 
-                  onChange={() => setIsPayingMe(false)}
-                />
-                No
-              </label>
+          {/* Payment recipient selection - only show if no venmoUsername provided */}
+          {!hasVenmoUsername && (
+            <div className="payment-recipient-selector">
+              <p className="payment-recipient-question">Are you paying Mike Delmonaco?</p>
+              <div className="radio-group">
+                <label className="radio-label">
+                  <input 
+                    className="radio-input"
+                    name="paying-me" 
+                    type="radio" 
+                    checked={isPayingMe} 
+                    onChange={() => setIsPayingMe(true)}
+                  />
+                  Yes
+                </label>
+                
+                <label className="radio-label">
+                  <input 
+                    className="radio-input"
+                    name="not-paying-me" 
+                    type="radio" 
+                    checked={!isPayingMe} 
+                    onChange={() => setIsPayingMe(false)}
+                  />
+                  No
+                </label>
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="wizard-actions">
             <a
               className="action-button venmo-button venmo-button-large"
-              href={isPayingMe 
-                ? getVenmoUrl(amountStr, note, 'Mike-Delmonaco')
-                : getVenmoUrl(amountStr, note)
+              href={
+                hasVenmoUsername 
+                  ? getVenmoUrl(amountStr, note, initialVenmoUsername)
+                  : isPayingMe 
+                    ? getVenmoUrl(amountStr, note, 'Mike-Delmonaco')
+                    : getVenmoUrl(amountStr, note)
               }
             >
-              Pay {debtStr} with Venmo
+              {hasVenmoUsername 
+                ? `Pay @${initialVenmoUsername} ${debtStr} with Venmo`
+                : `Pay ${debtStr} with Venmo`
+              }
             </a>
           </div>
 

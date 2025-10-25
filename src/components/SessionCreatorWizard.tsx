@@ -16,6 +16,7 @@ interface SessionCreatorWizardProps {
   initialTip?: number;
   initialTipIsRate?: boolean;
   initialTipIncludedInTotal?: boolean;
+  initialVenmoUsername?: string;
 }
 
 export function SessionCreatorWizard({
@@ -24,15 +25,17 @@ export function SessionCreatorWizard({
   initialTotal,
   initialTip = 20,
   initialTipIsRate = true,
-  initialTipIncludedInTotal = false
+  initialTipIncludedInTotal = false,
+  initialVenmoUsername
 }: SessionCreatorWizardProps) {
-  const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
+  const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4>(1);
   const [items, setItems] = useState<Partial<Item>[]>(initialItems);
   const [subtotal, setSubtotal] = useState<number | undefined>(initialSubtotal);
   const [total, setTotal] = useState<number | undefined>(initialTotal);
   const [tip, setTip] = useState<number | undefined>(initialTip);
   const [tipIsRate, setTipIsRate] = useState<boolean>(initialTipIsRate);
   const [tipIncludedInTotal] = useState<boolean>(initialTipIncludedInTotal);
+  const [venmoUsername, setVenmoUsername] = useState<string>(initialVenmoUsername ?? '');
   const [editingCostIndex, setEditingCostIndex] = useState<number | null>(null);
   const [editingCostValue, setEditingCostValue] = useState<string>('');
 
@@ -43,7 +46,8 @@ export function SessionCreatorWizard({
     setTotal(initialTotal);
     setTip(initialTip);
     setTipIsRate(initialTipIsRate);
-  }, [initialItems, initialSubtotal, initialTotal, initialTip, initialTipIsRate]);
+    setVenmoUsername(initialVenmoUsername ?? '');
+  }, [initialItems, initialSubtotal, initialTotal, initialTip, initialTipIsRate, initialVenmoUsername]);
 
   const setItem = (index: number, updates: Partial<Item>) => {
     setItems(prevItems => {
@@ -65,7 +69,7 @@ export function SessionCreatorWizard({
     setItems(prevItems => [...prevItems, emptyItem()]);
   };
 
-  const goToStep = (step: 1 | 2 | 3) => {
+  const goToStep = (step: 1 | 2 | 3 | 4) => {
     setCurrentStep(step);
   };
 
@@ -76,7 +80,8 @@ export function SessionCreatorWizard({
     tip,
     tipIsRate,
     tipIncludedInTotal,
-    isPayingMe: true
+    isPayingMe: true,
+    venmoUsername: venmoUsername || undefined
   };
 
   const maxSplit = Math.max(8, ...items.map(i => Math.abs(i.totalPortions ?? 1)));
@@ -84,7 +89,7 @@ export function SessionCreatorWizard({
   return (
     <div className="wizard-container">
       <div className="wizard-progress">
-        Step {currentStep} of 3
+        Step {currentStep} of 4
       </div>
 
       {/* Step 1: Item Verification */}
@@ -212,8 +217,52 @@ export function SessionCreatorWizard({
         </div>
       )}
 
-      {/* Step 3: Sharing */}
+      {/* Step 3: Venmo Username (Optional) */}
       {currentStep === 3 && (
+        <div className="wizard-step">
+          <h2 className="wizard-step-title">Venmo Username (Optional)</h2>
+          <p className="wizard-step-description">
+            If you want friends to pay you directly, enter your Venmo username
+          </p>
+          
+          <div className="form-group">
+            <label className="form-label" htmlFor="venmo">Venmo Username</label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span style={{ color: 'var(--text-muted)' }}>@</span>
+              <input
+                className="form-control"
+                id="venmo"
+                type="text"
+                value={venmoUsername}
+                onChange={(ev) => setVenmoUsername(ev.target.value)}
+                placeholder="username"
+                style={{ flex: 1 }}
+              />
+            </div>
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
+              Leave blank if you prefer friends to select the recipient themselves
+            </p>
+          </div>
+
+          <div className="wizard-nav">
+            <button
+              className="btn btn-outline btn-wizard-back"
+              onClick={() => goToStep(2)}
+            >
+              Back
+            </button>
+            <button
+              className={`btn ${venmoUsername ? 'btn-primary' : 'btn-outline'} btn-wizard-next`}
+              onClick={() => goToStep(4)}
+            >
+              {venmoUsername ? 'Next' : 'Skip'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Step 4: Sharing */}
+      {currentStep === 4 && (
         <div className="wizard-step">
           <h2 className="wizard-step-title">Share with Friends</h2>
           <p className="wizard-step-description">
@@ -228,7 +277,7 @@ export function SessionCreatorWizard({
           <div className="wizard-nav">
             <button
               className="btn btn-outline btn-wizard-back"
-              onClick={() => goToStep(2)}
+              onClick={() => goToStep(3)}
             >
               Back
             </button>
