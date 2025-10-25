@@ -143,6 +143,7 @@ export function SessionCreatorWizard({
                     value={item.totalPortions ?? 1}
                     maxSplit={maxSplit}
                     onChange={(newTotal) => setItem(index, { totalPortions: newTotal })}
+                    justMeText="1 person"
                   />
                 </div>
               </div>
