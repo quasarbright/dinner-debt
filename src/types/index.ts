@@ -18,7 +18,6 @@ export interface FormState {
   tip: number | undefined
   tipIsRate: boolean
   tipIncludedInTotal: boolean
-  isPayingMe: boolean
   venmoUsername?: string
 }
 

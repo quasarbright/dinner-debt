@@ -18,7 +18,6 @@ interface FriendWizardProps {
   tip: number | undefined;
   tipIsRate: boolean;
   tipIncludedInTotal: boolean;
-  isPayingMe: boolean;
   isCalculatorMode?: boolean;
   venmoUsername?: string;
 }
@@ -43,7 +42,6 @@ export function FriendWizard(props: FriendWizardProps) {
     tip: initialTip,
     tipIsRate: initialTipIsRate,
     tipIncludedInTotal,
-    isPayingMe: initialIsPayingMe,
     isCalculatorMode = false,
     venmoUsername: initialVenmoUsername
   } = props;
@@ -52,7 +50,6 @@ export function FriendWizard(props: FriendWizardProps) {
   const [currentStep, setCurrentStep] = useState<0 | 1 | 2 | 3>(isCalculatorMode ? 0 : 1);
   const [selectedItemIds, setSelectedItemIds] = useState<Set<string>>(new Set());
   const [friendSplitConfig, setFriendSplitConfig] = useState<Map<string, SplitConfig>>(new Map());
-  const [isPayingMe, setIsPayingMe] = useState<boolean>(initialIsPayingMe);
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
   
   // Calculator mode: editable bill details and item costs
@@ -71,8 +68,7 @@ export function FriendWizard(props: FriendWizardProps) {
     setTip(initialTip);
     setTipIsRate(initialTipIsRate);
     setItems(initialItems);
-    setIsPayingMe(initialIsPayingMe);
-  }, [initialSubtotal, initialTotal, initialTip, initialTipIsRate, initialItems, initialIsPayingMe]);
+  }, [initialSubtotal, initialTotal, initialTip, initialTipIsRate, initialItems]);
 
   // Update item cost (calculator mode only)
   const updateItemCost = (itemId: string, newCost: number) => {
@@ -149,7 +145,7 @@ export function FriendWizard(props: FriendWizardProps) {
   const amountStr = debtStr.substring(1);
   const note = encodeURIComponent("dinner-debt");
   
-  // Use venmoUsername from props if provided (from share URL), otherwise use isPayingMe logic
+  // Use venmoUsername from props if provided (from share URL)
   const hasVenmoUsername = !!initialVenmoUsername;
 
   // Step 1: Item Selection
@@ -482,48 +478,16 @@ export function FriendWizard(props: FriendWizardProps) {
 
           <div className="payment-amount">
             <div className="payment-amount-label">You owe:</div>
-            <div className="payment-amount-value">{debtStr}</div>
-          </div>
+          <div className="payment-amount-value">{debtStr}</div>
+        </div>
 
-          {/* Payment recipient selection - only show if no venmoUsername provided */}
-          {!hasVenmoUsername && (
-            <div className="payment-recipient-selector">
-              <p className="payment-recipient-question">Are you paying Mike Delmonaco?</p>
-              <div className="radio-group">
-                <label className="radio-label">
-                  <input 
-                    className="radio-input"
-                    name="paying-me" 
-                    type="radio" 
-                    checked={isPayingMe} 
-                    onChange={() => setIsPayingMe(true)}
-                  />
-                  Yes
-                </label>
-                
-                <label className="radio-label">
-                  <input 
-                    className="radio-input"
-                    name="not-paying-me" 
-                    type="radio" 
-                    checked={!isPayingMe} 
-                    onChange={() => setIsPayingMe(false)}
-                  />
-                  No
-                </label>
-              </div>
-            </div>
-          )}
-
-          <div className="wizard-actions">
+        <div className="wizard-actions">
             <a
               className="action-button venmo-button venmo-button-large"
               href={
                 hasVenmoUsername 
                   ? getVenmoUrl(amountStr, note, initialVenmoUsername)
-                  : isPayingMe 
-                    ? getVenmoUrl(amountStr, note, 'Mike-Delmonaco')
-                    : getVenmoUrl(amountStr, note)
+                  : getVenmoUrl(amountStr, note)
               }
             >
               {hasVenmoUsername 

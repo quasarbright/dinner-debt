@@ -36,8 +36,6 @@ function App() {
       tipIsRate,
     setTipIsRate,
       tipIncludedInTotal,
-    isPayingMe,
-    setIsPayingMe,
     setItem,
     removeItem,
     addItem,
@@ -203,7 +201,6 @@ function App() {
           tip={tip}
           tipIsRate={tipIsRate}
           tipIncludedInTotal={tipIncludedInTotal}
-          isPayingMe={isPayingMe}
           venmoUsername={getFormState().venmoUsername}
         />
       ) : mode === 'calculator-wizard' ? (
@@ -214,7 +211,6 @@ function App() {
           tip={tip}
           tipIsRate={tipIsRate}
           tipIncludedInTotal={tipIncludedInTotal}
-          isPayingMe={isPayingMe}
           isCalculatorMode={true}
           venmoUsername={getFormState().venmoUsername}
         />
@@ -347,55 +343,17 @@ function App() {
         />
       </section>
       
-      <section className="result-section">
-        <h2 className="section-title">Result</h2>
-        <div className="result-amount">You owe: {debtStr}</div>
-        
-        <div className="form-group">
-          <p>Are you paying Mike Delmonaco?</p>
-          <div className="radio-group">
-            <label className="radio-label">
-              <input 
-                className="radio-input"
-                name="not-paying-me" 
-                type="radio" 
-                checked={!isPayingMe} 
-                onChange={() => {}}
-                onClick={() => setIsPayingMe(false)}
-              />
-              No
-            </label>
-            
-            <label className="radio-label">
-              <input 
-                className="radio-input"
-                name="paying-me" 
-                type="radio" 
-                checked={isPayingMe} 
-                onChange={() => {}}
-                onClick={() => setIsPayingMe(true)}
-              />
-              Yes
-            </label>
-          </div>
-        </div>
-        
-        {isPayingMe ? (
-          <a 
-            className="action-button venmo-button" 
-            href={getVenmoUrl(amountStr, note, 'Mike-Delmonaco')}
-          >
-            Pay Mike Delmonaco with Venmo
-          </a>
-        ): (
-          <a 
-            className="action-button venmo-button" 
-            href={getVenmoUrl(amountStr, note)}
-          >
-            Pay with Venmo
-          </a>
-        )}
-      </section>
+    <section className="result-section">
+      <h2 className="section-title">Result</h2>
+      <div className="result-amount">You owe: {debtStr}</div>
+      
+      <a 
+        className="action-button venmo-button" 
+        href={getVenmoUrl(amountStr, note)}
+      >
+        Pay {debtStr} with Venmo
+      </a>
+    </section>
       
       {/* Hide QR code section for calculator and creator modes (they have their own sharing UX) */}
       {mode !== 'calculator' && mode !== 'creator' && !showCalculatorManualEntry && !showCreatorManualEntry && (

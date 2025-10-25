@@ -98,7 +98,6 @@ export function SessionCreatorWizard({
     tip,
     tipIsRate,
     tipIncludedInTotal,
-    isPayingMe: true,
     venmoUsername: venmoUsername || undefined
   };
 

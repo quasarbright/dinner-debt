@@ -13,7 +13,6 @@ export function useFormState() {
   const [tip, setTip] = useState<number | undefined>(20);
   const [tipIsRate, setTipIsRate] = useState<boolean>(true);
   const [tipIncludedInTotal, setTipIncludedInTotal] = useState<boolean>(false);
-  const [isPayingMe, setIsPayingMe] = useState<boolean>(false);
   const [venmoUsername, setVenmoUsername] = useState<string>();
 
   // Load state from URL on mount
@@ -33,7 +32,6 @@ export function useFormState() {
         setTip(decoded.tip);
         setTipIsRate(decoded.tipIsRate);
         setTipIncludedInTotal(decoded.tipIncludedInTotal);
-        setIsPayingMe(decoded.isPayingMe);
         setVenmoUsername(decoded.venmoUsername);
       }
     }
@@ -98,7 +96,6 @@ export function useFormState() {
     tip,
     tipIsRate,
     tipIncludedInTotal,
-    isPayingMe,
     venmoUsername
   });
 
@@ -115,8 +112,6 @@ export function useFormState() {
     setTipIsRate,
     tipIncludedInTotal,
     setTipIncludedInTotal,
-    isPayingMe,
-    setIsPayingMe,
     venmoUsername,
     setVenmoUsername,
     setItem,
