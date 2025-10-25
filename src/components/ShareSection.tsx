@@ -11,10 +11,12 @@ import { ExpandIndicator } from './ExpandIndicator';
 import { QRCodeErrorBoundary } from './QRCodeErrorBoundary';
 
 interface ShareSectionProps {
-  getFormState: () => any;
+  getFormState?: () => any;
+  formState?: any;
+  showAsStep?: boolean;
 }
 
-export function ShareSection({ getFormState }: ShareSectionProps) {
+export function ShareSection({ getFormState, formState, showAsStep = false }: ShareSectionProps) {
   const {
     showQRCode,
     setShowQRCode,
@@ -24,22 +26,28 @@ export function ShareSection({ getFormState }: ShareSectionProps) {
     getShareUrl,
     handleCopyLink,
     handleShareLink
-  } = useShareLink({ getFormState });
+  } = useShareLink({ 
+    getFormState: getFormState || (() => formState)
+  });
+
+  const shouldShowQRCode = showAsStep || showQRCode;
 
   return (
     <section className="form-section">
-      <div 
-        className="qr-toggle"
-        onClick={() => {
-          setQrCodeError(false);
-          setShowQRCode(b => !b);
-        }}
-      >
-        <ExpandIndicator isExpanded={showQRCode} />
-        {showQRCode ? 'Hide QR Code' : 'Show QR Code'}
-      </div>
+      {!showAsStep && (
+        <div 
+          className="qr-toggle"
+          onClick={() => {
+            setQrCodeError(false);
+            setShowQRCode(b => !b);
+          }}
+        >
+          <ExpandIndicator isExpanded={showQRCode} />
+          {showQRCode ? 'Hide QR Code' : 'Show QR Code'}
+        </div>
+      )}
       
-      {showQRCode && (
+      {shouldShowQRCode && (
         <div className="qr-container">
           {qrCodeError ? (
             <div className="error-message" style={{ textAlign: 'center', padding: '2rem' }}>

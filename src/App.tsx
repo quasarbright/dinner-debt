@@ -19,6 +19,8 @@ import { SplitControls } from './components/SplitControls';
 import { BillDetails } from './components/BillDetails';
 import { LandingPage } from './components/LandingPage';
 import { CalculatorChoicePage } from './components/CalculatorChoicePage';
+import { CreatorChoicePage } from './components/CreatorChoicePage';
+import { SessionCreatorWizard } from './components/SessionCreatorWizard';
 import { ShareSection } from './components/ShareSection';
 
 function App() {
@@ -54,8 +56,8 @@ function App() {
 
   const [showApiKeyModal, setShowApiKeyModal] = React.useState(false);
   
-  // Track when we need to redirect after receipt upload in calculator mode
-  const shouldRedirectAfterUpload = React.useRef(false);
+  // Track when we need to redirect after receipt upload in calculator/creator modes
+  const shouldRedirectAfterUpload = React.useRef<'calculator' | 'creator' | null>(null);
 
   const {
     isProcessingReceipt,
@@ -67,21 +69,28 @@ function App() {
     onApiKeyMissing: () => setShowApiKeyModal(true),
     onUploadSuccess: () => {
       if (mode === 'calculator') {
-        shouldRedirectAfterUpload.current = true;
+        shouldRedirectAfterUpload.current = 'calculator';
+      } else if (mode === 'creator') {
+        shouldRedirectAfterUpload.current = 'creator';
       }
     }
   });
 
-  // For calculator mode: get share URL using a temporary hook instance for redirect
+  // For calculator/creator modes: get share URL using a temporary hook instance for redirect
   const { getShareUrl } = useShareLink({ getFormState });
 
-  // Redirect after form state has been populated (in calculator mode only)
+  // Redirect after form state has been populated (in calculator/creator modes)
   React.useEffect(() => {
     if (shouldRedirectAfterUpload.current && items.length > 0) {
-      shouldRedirectAfterUpload.current = false;
+      const uploadMode = shouldRedirectAfterUpload.current;
+      shouldRedirectAfterUpload.current = null;
       const shareUrl = getShareUrl();
       const url = new URL(shareUrl);
-      url.searchParams.set('calculator', 'true');
+      if (uploadMode === 'calculator') {
+        url.searchParams.set('calculator', 'true');
+      } else if (uploadMode === 'creator') {
+        url.searchParams.set('mode', 'creator-wizard');
+      }
       window.location.href = url.toString();
     }
   }, [items, getShareUrl]);
@@ -92,16 +101,37 @@ function App() {
   // Detect mode from URL parameters
   const mode = React.useMemo(() => {
     const params = new URLSearchParams(window.location.search);
-    if (params.has('data')) {
-      return params.get('calculator') === 'true' ? 'calculator-wizard' : 'friend';
+    
+    // Creator wizard: has mode=creator-wizard or (mode=creator and has data)
+    if (params.get('mode') === 'creator-wizard' || 
+        (params.get('mode') === 'creator' && params.has('data'))) {
+      return 'creator-wizard';
     }
+    
+    // Friend mode: has data but no mode/calculator param
+    if (params.has('data') && !params.has('mode') && params.get('calculator') !== 'true') {
+      return 'friend';
+    }
+    
+    // Calculator wizard: has data and calculator=true
+    if (params.has('data') && params.get('calculator') === 'true') {
+      return 'calculator-wizard';
+    }
+    
+    // Check explicit mode parameter
     const modeParam = params.get('mode');
-    if (modeParam === 'creator' || modeParam === 'calculator') return modeParam;
+    if (modeParam === 'creator' || modeParam === 'calculator') {
+      return modeParam;
+    }
+    
+    // Default to landing
     return 'landing';
-  }, [window.location.search]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  // Internal state for calculator manual entry mode (no URL change)
+  // Internal state for calculator/creator manual entry mode (no URL change)
   const [showCalculatorManualEntry, setShowCalculatorManualEntry] = React.useState(false);
+  const [showCreatorManualEntry, setShowCreatorManualEntry] = React.useState(false);
 
   // Calculate debt using utility function
   const debt = calculateDebt({ items, subtotal, total, tip, tipIsRate, tipIncludedInTotal });
@@ -133,6 +163,24 @@ function App() {
       {/* Conditional rendering based on mode */}
       {mode === 'landing' ? (
         <LandingPage />
+      ) : mode === 'creator' && !showCreatorManualEntry ? (
+        <CreatorChoicePage
+          receiptUploadEnabled={receiptUploadEnabled}
+          onReceiptUploadClick={handleReceiptUploadClick}
+          onManualEntryClick={() => setShowCreatorManualEntry(true)}
+          isProcessingReceipt={isProcessingReceipt}
+          receiptError={receiptError ?? null}
+          onReceiptUpload={handleReceiptUpload}
+        />
+      ) : mode === 'creator-wizard' || (mode === 'creator' && showCreatorManualEntry) ? (
+        <SessionCreatorWizard
+          initialItems={items}
+          initialSubtotal={subtotal}
+          initialTotal={total}
+          initialTip={tip}
+          initialTipIsRate={tipIsRate}
+          initialTipIncludedInTotal={tipIncludedInTotal}
+        />
       ) : mode === 'calculator' && !showCalculatorManualEntry ? (
         <CalculatorChoicePage
           receiptUploadEnabled={receiptUploadEnabled}
@@ -269,8 +317,8 @@ function App() {
       <section className="form-section">
         <h2 className="section-title">Bill Details</h2>
         <BillDetails
-          subtotal={subtotal ?? 0}
-          total={total ?? 0}
+          subtotal={subtotal}
+          total={total}
           tip={tip}
           tipIsRate={tipIsRate}
           tipIncludedInTotal={tipIncludedInTotal}
@@ -331,8 +379,8 @@ function App() {
         )}
       </section>
       
-      {/* Hide QR code section for calculator modes */}
-      {mode !== 'calculator' && !showCalculatorManualEntry && (
+      {/* Hide QR code section for calculator and creator modes (they have their own sharing UX) */}
+      {mode !== 'calculator' && mode !== 'creator' && !showCalculatorManualEntry && !showCreatorManualEntry && (
         <ShareSection getFormState={getFormState} />
       )}
         </>
