@@ -189,8 +189,8 @@ export function FriendWizard(props: FriendWizardProps) {
           </p>
           
           <BillDetails
-            subtotal={subtotal ?? 0}
-            total={total ?? 0}
+            subtotal={subtotal}
+            total={total}
             tip={tip}
             tipIsRate={tipIsRate}
             tipIncludedInTotal={tipIncludedInTotal}
@@ -249,7 +249,9 @@ export function FriendWizard(props: FriendWizardProps) {
                           value={itemCost || ''}
                           onChange={(e) => {
                             e.stopPropagation();
-                            updateItemCost(item.id!, Number.parseFloat(e.target.value) || 0);
+                            const value = e.target.value.trim();
+                            const parsed = Number.parseFloat(value);
+                            updateItemCost(item.id!, value === '' || isNaN(parsed) ? 0 : parsed);
                           }}
                           onClick={(e) => e.stopPropagation()}
                           placeholder="0.00"
@@ -404,7 +406,7 @@ export function FriendWizard(props: FriendWizardProps) {
           <h2 className="wizard-step-title">Ready to pay?</h2>
           
           <div className="payment-summary">
-            <h3 className="payment-summary-title">Your items{tipIncludedInTotal ? ' *' : ''}:</h3>
+            <h3 className="payment-summary-title">Your items:</h3>
             <div className="payment-summary-items">
               {selectedItems.map(item => {
                 if (!item.id) return null;

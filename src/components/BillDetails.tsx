@@ -4,13 +4,13 @@
 import React from 'react';
 
 interface BillDetailsProps {
-  subtotal: number;
-  total: number;
+  subtotal: number | undefined;
+  total: number | undefined;
   tip: number;
   tipIsRate: boolean;
   tipIncludedInTotal: boolean;
-  onSubtotalChange: (value: number) => void;
-  onTotalChange: (value: number) => void;
+  onSubtotalChange: (value: number | undefined) => void;
+  onTotalChange: (value: number | undefined) => void;
   onTipChange: (value: number) => void;
   onTipIsRateChange: (value: boolean) => void;
 }
@@ -38,7 +38,11 @@ export function BillDetails({
             type='text' 
             inputMode="decimal"
             value={subtotal ?? ''}
-            onChange={(ev) => onSubtotalChange(Number.parseFloat(ev.target.value))} 
+            onChange={(ev) => {
+              const value = ev.target.value.trim();
+              const parsed = Number.parseFloat(value);
+              onSubtotalChange(value === '' || isNaN(parsed) ? undefined : parsed);
+            }} 
             placeholder="0.00"
           />
         </div>
@@ -54,7 +58,11 @@ export function BillDetails({
             type='text' 
             inputMode="decimal"
             value={total ?? ''}
-            onChange={(ev) => onTotalChange(Number.parseFloat(ev.target.value))} 
+            onChange={(ev) => {
+              const value = ev.target.value.trim();
+              const parsed = Number.parseFloat(value);
+              onTotalChange(value === '' || isNaN(parsed) ? undefined : parsed);
+            }} 
             placeholder="0.00"
           />
         </div>
@@ -72,8 +80,12 @@ export function BillDetails({
               name='tip' 
               type='number' 
               inputMode="decimal"
-              value={tip} 
-              onChange={(ev) => onTipChange(Number.parseFloat(ev.target.value))} 
+              value={tip ?? ''} 
+              onChange={(ev) => {
+                const value = ev.target.value.trim();
+                const parsed = Number.parseFloat(value);
+                onTipChange(value === '' || isNaN(parsed) ? 0 : parsed);
+              }} 
             />
             {tipIsRate && <span className="percent-symbol">%</span>}
           </div>
