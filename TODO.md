@@ -1,20 +1,21 @@
-- [ ] improve session creator ux
-  - [ ] don't even show how many you're paying for on a split
-  - [ ] wizard-based ux. qr/link sharing at the end
-  - [ ] think about better way to do splitting. for a large party with many apps split amongst everyone, applying a split to every app would be annoying. see bulk splitting todo item
-- [ ] homepage for session creator vs "just calculating" use-case. different user experiences.
+- [ ] move to its own domain instead of under quasarbright.github.io
+- [ ] proper backend so people don't have to paste their api key
+- [ ] think about better way to do splitting. for a large party with many apps split amongst everyone, applying a split to every app would be annoying. see bulk splitting todo item
 - [ ] move away from discord theme. figure something else out.
 - [ ] test duplicate item handling for receipt upload
-- [ ] proper backend so people don't have to paste their api key
 - [ ] bulk splitting for appetizers. Like if there were 3 appetizers split amongst the whole table, you shouldn't have to go one by one and split all of them
-- [ ] weird scrolling bug on chrome mobile. when you scroll to the bottom and let it go while it still has momentum going down, it jumps around and sends you to the top.
 - [ ] SEO. doesn't show up on google.
 - [ ] for main payer, calculate tip and new total for you so can just write that down on the check.
 - [ ] have receipt scanner check its math
-- [ ] make venmo work on desktop. not sure what types of urls are supported
+- [ ] make venmo work on desktop. not sure what types of urls are supported. low priority, not main use cases
 - [ ] extract shared receipt upload/button logic into something reusable
 - [x] after uploading a very big receipt, the screen goes blank. reproduce on laptop and debug. probably just too big for qr code.
 - [x] [improve friend ux](./planning/friend-ux-improvements.plan.md)
   - [x] instead of friends x-ing out what they didn't get, have them just check what they did get. Most stuff, they didn't get. Maybe a sequence of pages instead of just one.
   - Implemented 3-step wizard: (1) check items, (2) configure splits, (3) pay. Mobile-optimized and foolproof.
 - [x] selector options are white text on white on windows
+- [x] improve session creator ux
+  - [x] don't even show how many you're paying for on a split
+  - [x] wizard-based ux. qr/link sharing at the end
+- [x] homepage for session creator vs "just calculating" use-case. different user experiences.
+- [x] weird scrolling bug on chrome mobile. when you scroll to the bottom and let it go while it still has momentum going down, it jumps around and sends you to the top.
