@@ -44,6 +44,12 @@
   color: var(--header-primary);
   margin-bottom: 0.5rem;
   font-size: 1.75rem;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.app-title:hover {
+  opacity: 0.8;
 }
 
 .app-description {
