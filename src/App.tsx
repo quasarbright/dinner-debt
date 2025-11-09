@@ -157,7 +157,7 @@ function App() {
         </button>
         <h1 
           className="app-title" 
-          onClick={() => window.location.href = '/'}
+          onClick={() => window.location.href = window.location.pathname}
         >
           Dinner Debt
         </h1>
