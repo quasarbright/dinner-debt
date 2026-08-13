@@ -54,7 +54,9 @@ function App() {
     toggleBetaFeatures
   } = useSettings();
 
-  const { getApiKey, saveApiKey, deleteApiKey } = useApiKeyManagement();
+  const { getApiKey, saveApiKey, deleteApiKey } = useApiKeyManagement(
+    () => toggleBetaFeatures(true)
+  );
 
   const [showApiKeyModal, setShowApiKeyModal] = React.useState(false);
   

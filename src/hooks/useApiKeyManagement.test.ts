@@ -43,4 +43,22 @@ describe('useApiKeyManagement', () => {
     expect(result.current.getApiKey()).toBeNull();
     expect(window.location.search).toBe('?mode=creator');
   });
+
+  it('calls onApiKeyLoadedFromUrl when an apiKey param is present, so callers can unlock features that depend on it', () => {
+    window.history.replaceState({}, '', '/?apiKey=my-secret-key');
+    const onApiKeyLoadedFromUrl = jest.fn();
+
+    renderHook(() => useApiKeyManagement(onApiKeyLoadedFromUrl));
+
+    expect(onApiKeyLoadedFromUrl).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not call onApiKeyLoadedFromUrl when no apiKey param is present', () => {
+    window.history.replaceState({}, '', '/?mode=creator');
+    const onApiKeyLoadedFromUrl = jest.fn();
+
+    renderHook(() => useApiKeyManagement(onApiKeyLoadedFromUrl));
+
+    expect(onApiKeyLoadedFromUrl).not.toHaveBeenCalled();
+  });
 });

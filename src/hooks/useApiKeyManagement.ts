@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-export function useApiKeyManagement() {
+export function useApiKeyManagement(onApiKeyLoadedFromUrl?: () => void) {
   const getApiKey = (): string | null => {
     return localStorage.getItem('openrouter_api_key');
   };
@@ -32,6 +32,7 @@ export function useApiKeyManagement() {
       const newSearch = params.toString();
       const newUrl = `${window.location.pathname}${newSearch ? `?${newSearch}` : ''}${window.location.hash}`;
       window.history.replaceState({}, '', newUrl);
+      onApiKeyLoadedFromUrl?.();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
