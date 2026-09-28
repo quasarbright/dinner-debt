@@ -5,7 +5,10 @@ import type { FormState } from '../types';
 
 export function encodeFormState(state: FormState): string {
   try {
-    const json = JSON.stringify(state);
+    // Item ids are random UUIDs that only matter locally; the decoder
+    // regenerates them, so leave them out to keep the URL short.
+    const items = state.items.map(({ id, ...rest }) => rest);
+    const json = JSON.stringify({ ...state, items });
     console.debug('Encoding form state JSON:', json);
     return btoa(json);
   } catch (error) {

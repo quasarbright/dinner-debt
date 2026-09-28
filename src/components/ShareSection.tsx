@@ -64,7 +64,7 @@ export function ShareSection({ getFormState, formState, showAsStep = false }: Sh
                 value={getShareUrl()}
                 bgColor="var(--background-secondary)"
                 fgColor="#dcddde"
-                level="M"
+                level="L"
                 style={{ width: '100%', height: 'auto', maxWidth: '400px' }}
               />
             </QRCodeErrorBoundary>
