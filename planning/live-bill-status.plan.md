@@ -30,8 +30,8 @@ See the earlier comparison of backend options for why we didn't pick P2P, Supaba
 ## Static architecture
 
 ```mermaid
-flowchart LR
-  subgraph Browser["Browser (GitHub Pages static site)"]
+flowchart TB
+  subgraph Browser["Browser"]
     direction TB
     HostUI["Host UI<br/>SessionCreatorWizard + live status"]
     FriendUI["Friend UI<br/>FriendWizard + live status"]
@@ -43,7 +43,7 @@ flowchart LR
     FriendUI --> SessionClient
   end
 
-  subgraph Firebase["Firebase (Google-hosted)"]
+  subgraph Firebase["Firebase"]
     direction TB
     Auth["Anonymous Auth"]
     Rules["Security Rules"]
