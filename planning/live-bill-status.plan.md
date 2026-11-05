@@ -104,7 +104,7 @@ Items are keyed by **index in the bill**. Item IDs are regenerated on decode, so
 sequenceDiagram
   actor Host
   participant HostUI as Host UI
-  participant Link as Share link codec
+  participant Codec as Share link codec
   participant Client as Session client
   participant Auth as Anonymous Auth
   participant FS as Firestore (via Rules)
@@ -116,8 +116,8 @@ sequenceDiagram
   Client->>FS: create sessions/{id} {hostUid, bill, expiresAt}
   FS-->>Client: ok
   Client-->>HostUI: sessionId
-  HostUI->>Link: encode(sessionId, bill)
-  Link-->>HostUI: URL
+  HostUI->>Codec: encode(sessionId, bill)
+  Codec-->>HostUI: URL
   HostUI-->>Host: QR code + link
   HostUI->>Client: subscribe(sessionId)
   Note over HostUI,FS: Host now sees live status (all items 0% paid)
@@ -129,14 +129,14 @@ sequenceDiagram
 sequenceDiagram
   actor Friend
   participant FriendUI as Friend UI
-  participant Link as Share link codec
+  participant Codec as Share link codec
   participant Client as Session client
   participant Auth as Anonymous Auth
   participant FS as Firestore (via Rules)
 
   Friend->>FriendUI: Scan QR / open link
-  FriendUI->>Link: decode(URL)
-  Link-->>FriendUI: sessionId + bill
+  FriendUI->>Codec: decode(URL)
+  Codec-->>FriendUI: sessionId + bill
   FriendUI-->>Friend: Render wizard immediately from link
   FriendUI->>Client: subscribe(sessionId)
   Client->>Auth: sign in anonymously
@@ -194,13 +194,13 @@ sequenceDiagram
 sequenceDiagram
   actor Friend
   participant FriendUI as Friend UI
-  participant Link as Share link codec
+  participant Codec as Share link codec
   participant Client as Session client
   participant FS as Firestore
 
   Friend->>FriendUI: Open link
-  FriendUI->>Link: decode(URL)
-  Link-->>FriendUI: sessionId + bill
+  FriendUI->>Codec: decode(URL)
+  Codec-->>FriendUI: sessionId + bill
   FriendUI-->>Friend: Wizard works as today
   FriendUI->>Client: subscribe(sessionId)
   Client-xFS: fails / times out
