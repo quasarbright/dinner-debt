@@ -14,6 +14,7 @@
     "ai": "^5.0.68",
     "browser-image-compression": "^2.0.2",
     "fflate": "^0.8.3",
+    "firebase": "13.0.0",
     "mathjs": "^15.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -32,7 +33,9 @@
     "test:receipt": "jest --runInBand src/receiptProcessor.test.ts",
     "eject": "react-scripts eject",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d build"
+    "deploy": "gh-pages -d build",
+    "test:rules": "firebase emulators:exec --only firestore,auth --project demo-dinner-debt 'jest -c jest.firebase.config.js --runInBand'",
+    "emulators": "firebase emulators:start --only firestore,auth --project demo-dinner-debt"
   },
   "eslintConfig": {
     "extends": [
@@ -53,10 +56,12 @@
     ]
   },
   "devDependencies": {
+    "@firebase/rules-unit-testing": "6.0.0",
     "@types/jest": "^30.0.0",
     "core-js-pure": "^3.46.0",
     "cross-fetch": "^4.1.0",
     "dotenv": "^17.2.3",
+    "firebase-tools": "15.34.0",
     "gh-pages": "^6.1.1",
     "identity-obj-proxy": "^3.0.0",
     "jest-canvas-mock": "^2.5.2",

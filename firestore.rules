@@ -1,0 +1,108 @@
+rules_version = '2';
+
+// Live bill sessions. See planning/live-bill-status.plan.md.
+//
+// sessions/{sessionId}                       the locked bill, created by the host
+// sessions/{sessionId}/payments/{paymentId}  anonymous payments
+//
+// Every browser signs in anonymously, so request.auth.uid identifies a device,
+// not a person.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function lifetime() {
+      return duration.value(7, 'd');
+    }
+
+    // Expiry uses the server clock and the server-set createdAt, so clients
+    // can't extend a session.
+    function isLive(session) {
+      return request.time < session.data.createdAt + lifetime();
+    }
+
+    function hasExactly(data, fields) {
+      return data.keys().hasAll(fields) && data.keys().hasOnly(fields);
+    }
+
+    match /sessions/{sessionId} {
+      // Get by id only: nobody can list or search sessions.
+      allow get: if signedIn() && isLive(resource);
+      allow list: if false;
+
+      allow create: if signedIn()
+        // Firestore auto-id shape (the client SDK generates it).
+        && sessionId.matches('^[A-Za-z0-9]{20}$')
+        && hasExactly(request.resource.data, ['hostUid', 'bill', 'itemKeys', 'createdAt', 'expiresAt'])
+        && request.resource.data.hostUid == request.auth.uid
+        && request.resource.data.createdAt == request.time
+        // expiresAt is only for TTL cleanup; allow an hour of client clock skew.
+        && request.resource.data.expiresAt is timestamp
+        && request.resource.data.expiresAt > request.time + lifetime() - duration.value(1, 'h')
+        && request.resource.data.expiresAt < request.time + lifetime() + duration.value(1, 'h')
+        && request.resource.data.bill is map
+        && request.resource.data.itemKeys is list
+        && request.resource.data.itemKeys.size() <= 500;
+
+      // The bill is locked once shared. Expired sessions are removed by TTL.
+      allow update, delete: if false;
+
+      match /payments/{paymentId} {
+        function session() {
+          return get(/databases/$(database)/documents/sessions/$(sessionId));
+        }
+
+        function isHost() {
+          return session().data.hostUid == request.auth.uid;
+        }
+
+        // Rules can't loop over map values, so each fraction's shape is
+        // checked by clients when reading (parseUnitFraction). Here we check
+        // that every key is a real item on this bill.
+        function validPayment(source) {
+          let data = request.resource.data;
+          return hasExactly(data, ['ownerUid', 'source', 'shares', 'createdAt'])
+            && data.ownerUid == request.auth.uid
+            && data.source == source
+            && data.createdAt == request.time
+            && data.shares is map
+            && data.shares.keys().hasOnly(session().data.itemKeys);
+        }
+
+        // A device's own payment lives at its uid, so paying again replaces it.
+        function isOwnPayment() {
+          return paymentId == request.auth.uid;
+        }
+
+        // Out-of-band entries the host adds use auto-ids (20 chars), which can
+        // never collide with a device's uid (28 chars).
+        function isHostMarkedId() {
+          return paymentId.matches('^[A-Za-z0-9]{20}$');
+        }
+
+        function canWrite() {
+          return (isOwnPayment() && !isHost() && validPayment('friend'))
+            || (isOwnPayment() && isHost() && validPayment('host-own'))
+            || (isHostMarkedId() && isHost() && validPayment('host-marked'));
+        }
+
+        allow read: if signedIn() && isLive(session());
+
+        allow create: if signedIn() && isLive(session()) && canWrite();
+
+        // A payment's type never changes, so the host can't overwrite a
+        // friend's payment and vice versa.
+        allow update: if signedIn() && isLive(session()) && canWrite()
+          && request.resource.data.source == resource.data.source;
+
+        allow delete: if signedIn() && isLive(session()) && (
+          isOwnPayment()
+          || (isHost() && resource.data.source == 'host-marked')
+        );
+      }
+    }
+  }
+}

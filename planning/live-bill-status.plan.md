@@ -96,7 +96,7 @@ The host and friends compute keys the same way from the same locked bill, so not
   - `expiresAt`: used only for cleanup
 - `sessions/{sessionId}/payments/{paymentId}`
   - `ownerUid`
-  - `shares`: item key → fraction of that item this payment covers (e.g. half of a split item = `0.5`)
+  - `shares`: item key → fraction of that item this payment covers, stored as integers `{num, den}` (e.g. half of a split item = `{num: 1, den: 2}`). Never floats: three ⅓ payments must add up to exactly 1.
   - `source`: `friend`, `host-own`, or `host-marked`
   - `createdAt`: server timestamp
 
@@ -127,7 +127,8 @@ Since every payment is its own document, concurrent payments never overwrite eac
 - **Payments:**
   - A friend can write only the payment whose ID and `ownerUid` are their own uid.
   - The host can write their own payment and create, edit, or delete out-of-band entries.
-  - Every key must exist in the bill, and every fraction must be between 0 and 1.
+  - Every key must exist in the bill.
+  - Fractions are validated by clients when reading (integers, 0 ≤ num ≤ den ≤ 1000), because the rules language can't loop over map values. A bad client can only corrupt its own payment, which it could already set to "paid everything".
   - No writes after 7 days.
 - **Discovery:** nobody can list sessions. Session IDs are random and unguessable, so you only get in with the link.
 
