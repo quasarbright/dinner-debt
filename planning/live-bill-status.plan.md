@@ -292,13 +292,8 @@ sequenceDiagram
 6. Friend UI: graying, and record the payment on Venmo click.
 7. Turn on TTL if the free tier supports it.
 
-## Open questions
+## Decisions
 
-- **Session ID generation.** Is the rules-guarded auto-ID acceptable, or do we want a truly server-generated ID? That would need a Cloud Function (pay-as-you-go plan with a card on file, still ~$0 at our volume) or a small Cloudflare Worker.
-- **Should the host's own items be required before sharing?** Otherwise "remaining" overstates what friends owe until the host does it.
-- **App Check, if spam appears (not v1).** It makes Firebase reject requests that don't come from our site running in a real browser. What it would take:
-  - Register a reCAPTCHA v3 site key and enable App Check for the web app in the Firebase console.
-  - Add `initializeAppCheck(...)` to the session client.
-  - Add a debug token for localhost and the emulator.
-  - Watch the metrics for a few days, then turn on enforcement for Firestore.
-  - Costs: the reCAPTCHA script's weight, Google's reCAPTCHA notice on the site, and possible false positives on privacy-hardened browsers. It doesn't stop someone abusing the real site by hand.
+- **Session ID:** the Firestore auto-ID, guarded by the rules, is fine. A bad actor can create their own sessions but can't harm anyone else's.
+- **App Check:** not for now. Revisit if spam appears. It needs a reCAPTCHA v3 key, `initializeAppCheck(...)` in the session client, a debug token for local and emulator use, then turning on enforcement.
+- **Host's own items:** not required before sharing. The host can mark them at any time.
