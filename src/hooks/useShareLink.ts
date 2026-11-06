@@ -3,21 +3,21 @@
 
 import { useState } from 'react';
 import type { FormState } from '../types';
-import { encodeFormState } from '../utils/shareUrl';
+import { friendUrl } from '../session/sessionUrls';
 
 interface UseShareLinkProps {
   getFormState: () => FormState;
+  // When set, the link also joins this live session.
+  sessionId?: string | null;
 }
 
-export function useShareLink({ getFormState }: UseShareLinkProps) {
+export function useShareLink({ getFormState, sessionId }: UseShareLinkProps) {
   const [showQRCode, setShowQRCode] = useState<boolean>(false);
   const [linkCopied, setLinkCopied] = useState<boolean>(false);
   const [qrCodeError, setQrCodeError] = useState<boolean>(false);
 
   const getShareUrl = (): string => {
-    const formState = getFormState();
-    const encoded = encodeFormState(formState);
-    return `${window.location.origin}${window.location.pathname}?data=${encoded}`;
+    return friendUrl(getFormState(), sessionId);
   };
 
   const handleCopyLink = async () => {

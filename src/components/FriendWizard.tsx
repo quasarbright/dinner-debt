@@ -10,6 +10,9 @@ import { getVenmoUrl } from '../utils/venmoUrl';
 import { SplitControls } from './SplitControls';
 import { ExpandIndicator } from './ExpandIndicator';
 import { BillDetails } from './BillDetails';
+import { useSessionPayments } from '../hooks/useSessionPayments';
+import { fullyPaidKeys, sharesFromSelection } from '../session/paymentStatus';
+import { itemKeys } from '../utils/itemKeys';
 
 interface FriendWizardProps {
   items: Partial<Item>[];
@@ -20,7 +23,13 @@ interface FriendWizardProps {
   tipIncludedInTotal: boolean;
   isCalculatorMode?: boolean;
   venmoUsername?: string;
+  // Live session from the share link; enables paid-item graying and recording payments.
+  sessionId?: string | null;
 }
+
+// How long "Pay with Venmo" waits for the payment to be saved before
+// opening Venmo anyway. Leaving the page can drop an unsent write.
+const RECORD_PAYMENT_WAIT_MS = 1500;
 
 interface DebtBreakdown {
   mySubtotal: number;
@@ -43,8 +52,18 @@ export function FriendWizard(props: FriendWizardProps) {
     tipIsRate: initialTipIsRate,
     tipIncludedInTotal,
     isCalculatorMode = false,
-    venmoUsername: initialVenmoUsername
+    venmoUsername: initialVenmoUsername,
+    sessionId
   } = props;
+
+  // Live session: only for friends, never in calculator mode.
+  const { payments, backend } = useSessionPayments(isCalculatorMode ? null : sessionId);
+  // Content-based keys from the bill as shared (the bill is locked once shared).
+  const keyById = useMemo(() => {
+    const keys = itemKeys(initialItems);
+    return new Map(initialItems.map((item, i) => [item.id, keys[i]]));
+  }, [initialItems]);
+  const paidKeys = useMemo(() => fullyPaidKeys(payments), [payments]);
 
   // Wizard internal state
   const [currentStep, setCurrentStep] = useState<0 | 1 | 2 | 3>(isCalculatorMode ? 0 : 1);
@@ -147,6 +166,30 @@ export function FriendWizard(props: FriendWizardProps) {
   
   // Use venmoUsername from props if provided (from share URL)
   const hasVenmoUsername = !!initialVenmoUsername;
+  const venmoUrl = hasVenmoUsername
+    ? getVenmoUrl(amountStr, note, initialVenmoUsername)
+    : getVenmoUrl(amountStr, note);
+
+  // Record the payment, then open Venmo. The redirect waits at most
+  // RECORD_PAYMENT_WAIT_MS so a slow backend never blocks paying.
+  const handlePayClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    if (!backend || !sessionId) return; // link-only: plain link behavior
+    const shares = sharesFromSelection(
+      selectedItems
+        .map(item => ({ ...item, key: keyById.get(item.id) }))
+        .filter((item): item is typeof item & { key: string } => !!item.key)
+    );
+    if (Object.keys(shares).length === 0) return;
+
+    event.preventDefault();
+    const saved = backend.setOwnPayment(sessionId, shares, 'friend').catch(error => {
+      console.warn('Could not record payment:', error);
+    });
+    const timeout = new Promise(resolve => setTimeout(resolve, RECORD_PAYMENT_WAIT_MS));
+    Promise.race([saved, timeout]).then(() => {
+      window.location.href = venmoUrl;
+    });
+  };
 
   // Step 1: Item Selection
   const toggleItemSelection = (itemId: string) => {
@@ -232,8 +275,14 @@ export function FriendWizard(props: FriendWizardProps) {
                 currency: 'USD'
               }).format(itemCost);
 
+              const isFullyPaid = paidKeys.has(keyById.get(item.id) ?? '');
+
               return (
-                <label key={item.id} className="item-checkbox-item">
+                <label
+                  key={item.id}
+                  className={`item-checkbox-item ${isFullyPaid ? 'item-paid' : ''}`}
+                  title={isFullyPaid ? 'Already paid for' : undefined}
+                >
                   <input
                     type="checkbox"
                     checked={isSelected}
@@ -484,11 +533,8 @@ export function FriendWizard(props: FriendWizardProps) {
         <div className="wizard-actions">
             <a
               className="action-button venmo-button venmo-button-large"
-              href={
-                hasVenmoUsername 
-                  ? getVenmoUrl(amountStr, note, initialVenmoUsername)
-                  : getVenmoUrl(amountStr, note)
-              }
+              href={venmoUrl}
+              onClick={handlePayClick}
             >
               {hasVenmoUsername 
                 ? `Pay @${initialVenmoUsername} ${debtStr} with Venmo`

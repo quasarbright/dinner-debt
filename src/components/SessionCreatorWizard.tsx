@@ -7,7 +7,12 @@ import type { Item } from '../types';
 import { BillDetails } from './BillDetails';
 import { SplitSelector } from './SplitSelector';
 import { ShareSection } from './ShareSection';
+import { HostDashboard } from './HostDashboard';
 import { emptyItem } from '../utils/itemHelpers';
+import type { FormState } from '../types';
+import { getSessionBackend, sessionsEnabled, withTimeout } from '../session/sessionClient';
+import { sessionBillFromForm } from '../session/sessionBill';
+import { hostUrl } from '../session/sessionUrls';
 
 interface SessionCreatorWizardProps {
   initialItems?: Partial<Item>[];
@@ -91,7 +96,37 @@ export function SessionCreatorWizard({
     setCurrentStep(step);
   };
 
-  const formState = {
+  // Live session for this bill. Once it exists the bill is locked: the
+  // wizard is replaced by the host dashboard.
+  const [shared, setShared] = useState<{ form: FormState; sessionId: string } | null>(null);
+  const [creatingSession, setCreatingSession] = useState(false);
+  const [sessionFailed, setSessionFailed] = useState(false);
+
+  React.useEffect(() => {
+    if (currentStep !== 4 || shared || sessionFailed || creatingSession || !sessionsEnabled()) return;
+    const form = formState;
+    setCreatingSession(true);
+    withTimeout(
+      getSessionBackend().then(backend => {
+        if (!backend) throw new Error('Sessions unavailable');
+        return backend.createSession(sessionBillFromForm(form));
+      })
+    )
+      .then(sessionId => {
+        // Refreshing or coming back later reopens the dashboard.
+        window.history.replaceState(null, '', hostUrl(form, sessionId));
+        setShared({ form, sessionId });
+      })
+      .catch(error => {
+        console.warn('Could not create live session; sharing link only:', error);
+        setSessionFailed(true);
+      })
+      .finally(() => setCreatingSession(false));
+    // formState is rebuilt every render; only react to reaching step 4.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentStep, shared, sessionFailed]);
+
+  const formState: FormState = {
     items,
     subtotal,
     total,
@@ -102,6 +137,10 @@ export function SessionCreatorWizard({
   };
 
   const maxSplit = Math.max(8, ...items.map(i => Math.abs(i.totalPortions ?? 1)));
+
+  if (shared) {
+    return <HostDashboard form={shared.form} sessionId={shared.sessionId} />;
+  }
 
   return (
     <div className="wizard-container">
@@ -297,15 +336,26 @@ export function SessionCreatorWizard({
             Have your friends scan this QR code or share the link with them
           </p>
           
-          <ShareSection 
-            formState={formState}
-            showAsStep={true}
-          />
+          {creatingSession ? (
+            <p className="wizard-step-description">Creating your link…</p>
+          ) : (
+            <>
+              <ShareSection
+                formState={formState}
+                showAsStep={true}
+              />
+              {sessionFailed && (
+                <p className="wizard-step-description">
+                  Live payment tracking isn't available right now, but this link works as usual.
+                </p>
+              )}
+            </>
+          )}
 
           <div className="wizard-nav">
             <button
               className="btn btn-outline btn-wizard-back"
-              onClick={() => goToStep(3)}
+              onClick={() => { setSessionFailed(false); goToStep(3); }}
             >
               Back
             </button>

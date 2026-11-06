@@ -22,6 +22,8 @@ import { CalculatorChoicePage } from './components/CalculatorChoicePage';
 import { CreatorChoicePage } from './components/CreatorChoicePage';
 import { SessionCreatorWizard } from './components/SessionCreatorWizard';
 import { ShareSection } from './components/ShareSection';
+import { HostDashboard } from './components/HostDashboard';
+import { sessionIdFromUrl } from './session/sessionUrls';
 
 function App() {
   // Initialize all state management hooks
@@ -106,6 +108,11 @@ function App() {
   const mode = React.useMemo(() => {
     const params = new URLSearchParams(window.location.search);
     
+    // Host's live status page for a shared bill
+    if (params.get('mode') === 'host' && params.has('data') && sessionIdFromUrl()) {
+      return 'host';
+    }
+
     // Creator wizard: has mode=creator-wizard or (mode=creator and has data)
     if (params.get('mode') === 'creator-wizard' || 
         (params.get('mode') === 'creator' && params.has('data'))) {
@@ -132,6 +139,14 @@ function App() {
     return 'landing';
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Live session joined via the link (friend and host modes only).
+  const sessionId = React.useMemo(() => sessionIdFromUrl(), []);
+  const venmoUsername = getFormState().venmoUsername;
+  const hostForm = React.useMemo(
+    () => ({ items, subtotal, total, tip, tipIsRate, tipIncludedInTotal, venmoUsername }),
+    [items, subtotal, total, tip, tipIsRate, tipIncludedInTotal, venmoUsername]
+  );
 
   // Internal state for calculator/creator manual entry mode (no URL change)
   const [showCalculatorManualEntry, setShowCalculatorManualEntry] = React.useState(false);
@@ -200,6 +215,8 @@ function App() {
           receiptError={receiptError ?? null}
           onReceiptUpload={handleReceiptUpload}
         />
+      ) : mode === 'host' && sessionId ? (
+        <HostDashboard form={hostForm} sessionId={sessionId} />
       ) : mode === 'friend' ? (
         <FriendWizard
           items={items}
@@ -209,6 +226,7 @@ function App() {
           tipIsRate={tipIsRate}
           tipIncludedInTotal={tipIncludedInTotal}
           venmoUsername={getFormState().venmoUsername}
+          sessionId={sessionId}
         />
       ) : mode === 'calculator-wizard' ? (
         <FriendWizard

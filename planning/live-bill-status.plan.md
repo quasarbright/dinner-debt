@@ -215,7 +215,7 @@ sequenceDiagram
   Friend->>FriendUI: Tap "Pay with Venmo"
   FriendUI->>Client: recordPayment(shares)
   Client->>FS: set payments/{friendUid}
-  Note right of Client: Fire-and-forget. Never blocks the redirect.
+  Note right of Client: Redirect waits at most 1.5s for the save.
   FriendUI->>Venmo: open deep link (amount, recipient)
   FS-->>HostUI: live update: fractions and remaining change
 ```

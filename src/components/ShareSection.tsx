@@ -14,9 +14,10 @@ interface ShareSectionProps {
   getFormState?: () => any;
   formState?: any;
   showAsStep?: boolean;
+  sessionId?: string | null;
 }
 
-export function ShareSection({ getFormState, formState, showAsStep = false }: ShareSectionProps) {
+export function ShareSection({ getFormState, formState, showAsStep = false, sessionId }: ShareSectionProps) {
   const {
     showQRCode,
     setShowQRCode,
@@ -27,7 +28,8 @@ export function ShareSection({ getFormState, formState, showAsStep = false }: Sh
     handleCopyLink,
     handleShareLink
   } = useShareLink({ 
-    getFormState: getFormState || (() => formState)
+    getFormState: getFormState || (() => formState),
+    sessionId
   });
 
   const shouldShowQRCode = showAsStep || showQRCode;
